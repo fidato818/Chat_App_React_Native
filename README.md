@@ -1,4 +1,5 @@
-# React Native Chat App
+# React Native Chat App (inprogress)
+
 
 * React Native
 * Firebase Authentication
