@@ -114,60 +114,65 @@ export default class TextMessages extends Component {
     console.log('messagesData', messagesData);
     const keyboardVerticalOffset = Platform.OS === 'android' ? 85 : 0;
     return (
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior="position"
-          keyboardVerticalOffset={keyboardVerticalOffset}
-          enabled>
-          {messagesData.map(e => {
-            return (
-              <View>
-                {userfriendId === e.userfriendId ? (
-                  <View>
-                    <Text
-                      style={{
-                        textAlign: 'right',
-                        color: 'white',
-                        padding: 8,
-                        backgroundColor: 'grey',
-                        marginTop: 10,
-                      }}>
-                      {e.text}
-                    </Text>
-                  </View>
-                ) : (
-                  <View>
-                    <Text> </Text>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-          <View style={styles.bottomView}>
-            <TextInput
-              style={styles.textStyle}
-              // keyboardType='numeric'
-              // secureTextEntry
-              label="Type Here"
-              type="text"
-              value={this.state.text}
-              onChangeText={text => this.setState({ text })}
-            />
-            <Button
-              icon="camera"
-              mode="contained"
-              onPress={() => this.onSend()}>
-              Press me
-            </Button>
-          </View>
-        </KeyboardAvoidingView>
+      <View style={styles.container}>
+        <SafeAreaView>
+          <ScrollView>
+            {messagesData.map((e) => {
+              return (
+                <View>
+                  {userfriendId === e.userfriendId ? (
+                    <View>
+                      <Text
+                        style={{
+                          textAlign: 'right',
+                          color: 'white',
+                          padding: 8,
+                          backgroundColor: 'grey',
+                          marginTop: 10,
+                        }}>
+                        {e.text}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View>
+                      <Text> </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </ScrollView>
+          <KeyboardAwareScrollView
+            // style={{ left: 0, right: 0, bottom: 0 }}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+            // contentContainerStyle={styles.container}
+            scrollEnabled={false}>
+            <View style={styles.bottomView}>
+              <TextInput
+                style={styles.textInputStyle}
+                onChangeText={(text) => this.setState({ message: text })}
+                // value={this.state.email}
+                placeholderTextColor="black"
+                placeholder="Message Here"
+                underlineColorAndroid="transparent"
+              />
+              <Button onPress={() => this.onSend()} title="SEND" />
+            </View>
+          </KeyboardAwareScrollView>
+        </SafeAreaView>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 3,
+    justifyContent: 'flex-end', //use flex-start, flex-end ,center to adjust vertical position
+    // alignItems: 'center', //use flex-start, flex-end ,center to adjust horizontal position
+    // backgroundColor: '#83bec4',
+  },
   // backgroundImage: {
   //   flex: 1,
   //   width: null,
@@ -179,18 +184,29 @@ const styles = StyleSheet.create({
   //   marginBottom: 20,
   // },
   bottomView: {
-    width: '100%',
-    // height:  50,
-    justifyContent: 'flex-end',
+    // width: '100%',
+    flex: 1,
+    height: 50,
+    flexDirection: 'row',
     // justifyContent: 'center',
-    // alignItems: 'center',
-
-    bottom: 0,
-    marginTop: 10,
+    alignItems: 'center',
+    // position: 'absolute', //Here is the trick
+    bottom: 0, //Here is the trick
   },
-  textStyle: {
-    fontFamily: 'ubuntu-regular',
-    fontSize: 16,
-    color: 'black',
+  textInputStyle: {
+    height: 40,
+    width: '84%',
+    borderColor: 'rgb(86, 117, 114)',
+    borderWidth: 2,
+    padding: 12,
+    borderRadius: 5,
+    fontFamily: 'quicksand-Regular',
+
+    // borderStartWidth: 2,
+    // borderEndWidth: 3,
+    // borderTopWidth: 1,
+    // boderLeftWidth: 2,
+    // borderRightWidth: 3,
+    // borderBottomWidth: 4,
   },
 });
