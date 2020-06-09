@@ -7,25 +7,30 @@ import {
   Text,
   Image,
   StyleSheet,
+  TextInput,
+  Button,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+  HeaderBackButton,
 } from 'react-native';
+import moment from 'moment';
 import {
   Avatar,
   Card,
   Title,
   Paragraph,
-  TextInput,
   FAB,
   Portal,
-  Button,
   Provider,
-  SafeAreaView,
-  ScrollView,
   Constants,
   Snackbar,
 } from 'react-native-paper';
-import { GiftedChat } from 'react-native-gifted-chat';
+// import { GiftedChat } from 'react-native-gifted-chat';
 import KeyboardSpacer from 'react-native-keyboard-spacer';
-import firebase from '../../config/firebase';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import firebase from '../../config/Firebase';
 export default class TextMessages extends Component {
   constructor(props) {
     super(props);
@@ -43,86 +48,139 @@ export default class TextMessages extends Component {
   // };
 
   static navigationOptions = ({ navigation }) => {
+    // console.log(navigation.state.params);
     return {
-      title: navigation.getParam('friendName'),
+      headerRight: (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Login')}
+          style={{
+            left: Dimensions.get('window').height < 667 ? '15%' : '3%',
+            // backgroundColor: 'red',
+            // width: '100%',
+            marginRight: 30,
+          }}>
+          <Image
+            style={{ width: 30, height: 30 }}
+            source={require('../../../assets/icons/icons8-export-24.png')}
+          />
+        </TouchableOpacity>
+      ),
+      headerTitle: navigation.state.params.friendName,
+      headerStyle: {
+        backgroundColor: 'teal',
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
     };
   };
   componentDidMount() {
     this.getmessages();
+    console.log(this.props.navigation.state.params);
   }
 
   getmessages = () => {
-    var userfriendId = this.props.navigation.state.params.friendId;
-    this.firebaseRef = firebase.database().ref('Messages');
-    this.firebaseRef.on('value', snapshot => {
-      let message = snapshot.val();
-      console.log('message', message);
-      console.log('userfriendId', userfriendId);
-
+    var chatKey = this.props.navigation.state.params.chatKey;
+    this.firebaseRef = firebase.database().ref('chatMessages').child(chatKey);
+    this.firebaseRef.on('value', (snapshot) => {
+      var messageDisplay = '';
       var newArr = [];
-
-      for (let word in message) {
-        for (let word2 in message[word]) {
-          console.log(message[word][word2].userfriendId);
-          newArr.push({
-            userfriendId: message[word][word2].userfriendId,
-            userId: message[word][word2].userId,
-            text: message[word][word2].text,
-            createdAt: message[word][word2].createdAt,
-          });
-        }
-      }
-
-      this.setState({ messagesData: newArr });
+      snapshot.forEach((data) => {
+        var chat = data.val();
+        var dateTime = chat.dateTime.split(',');
+        var msg = '';
+        console.log('Chat', chat);
+        newArr.push(chat);
+        console.log('Success: ', newArr);
+      });
+      this.setState({
+        messagesData: newArr,
+      });
     });
   };
 
-  onSend = (message, friendId) => {
-    const { text } = this.state;
+  onSendMessage = () => {
+    var chatKey = this.props.navigation.state.params.chatKey;
+    var friendId = this.props.navigation.state.params.friendId;
+    const { text, message } = this.state;
+    console.log('text', message);
     var userId = firebase.auth().currentUser.uid;
-    var useremail = firebase.auth().currentUser.email;
-    // console.log(useremail)
-    var userfriendId = this.props.navigation.state.params.friendId;
-    var database = firebase.database();
-    console.log('userId', userId);
-    // console.log('userfriendId', userfriendId);
-    if (userId === null || userId === undefined) {
-      Alert.alert('login user not defined');
-    } else {
-      database
-        .ref('Messages/' + userfriendId)
-        .push({
-          userfriendId,
-          userId,
-          text,
-          createdAt: new Date().toLocaleTimeString(),
-        })
-        .then(success => {
-          // this.props.navigation.setParams({ username: useremail });
-          console.log('Success: ', success);
-          alert('success');
-        })
-        .catch(error => {
-          console.log(`${error}`);
-        });
-    }
+    // var useremail = firebase.auth().currentUser.email;
+    // // console.log(useremail)
+    // var userfriendId = ' this.props.navigation.state.params.friendId';
+    // var database = firebase.database();
+    // console.log('userId', userId);
+    // // console.log('userfriendId', userfriendId);
+    // if (userId === null || userId === undefined) {
+    //   Alert.alert('login user not defined');
+    // } else {
+    //   database
+    //     .ref('Messages/' + userfriendId)
+    //     .push({
+    //       userfriendId,
+    //       userId,
+    //       text,
+    //       createdAt: new Date().toLocaleTimeString(),
+    //     })
+    //     .then((success) => {
+    //       // this.props.navigation.setParams({ username: useremail });
+    //       console.log('Success: ', success);
+    //       alert('success');
+    //     })
+    //     .catch((error) => {
+    //       console.log(`${error}`);
+    //     });
+    // }
+    var chatMessage = {
+      userId: userId,
+      friendId: friendId,
+      msg: message,
+      msgType: 'normal',
+      dateTime: new Date().toLocaleString(),
+    };
+
+    firebase
+      .database()
+      .ref('chatMessages')
+      .child(chatKey)
+      .push(chatMessage, function (error) {
+        if (error) alert(error);
+      });
   };
 
   render() {
     const { messagesData } = this.state;
-    var userfriendId = this.props.navigation.state.params.friendId;
-    console.log('messagesData', messagesData);
-    const keyboardVerticalOffset = Platform.OS === 'android' ? 85 : 0;
+    var userfriendId = 'this.props.navigation.state.params.friendId';
+    var currentId = firebase.auth().currentUser.uid;
+    // console.log('messagesData', messagesData);
+    // const keyboardVerticalOffset = Platform.OS === 'android' ? 85 : 0;
     return (
       <View style={styles.container}>
         <SafeAreaView>
           <ScrollView>
             {messagesData.map((e) => {
+              console.log('e', e);
               return (
                 <View>
-                  {userfriendId === e.userfriendId ? (
+                  {e.userId !== currentId ? (
                     <View>
                       <Text
+                        style={{
+                          textAlign: 'left',
+                          color: 'black',
+                          padding: 8,
+                          backgroundColor: 'yellow',
+                          marginTop: 10,
+                        }}>
+                        {e.msg}
+                        {'\n'}
+                        {moment(e.dateTime || moment.now()).fromNow()}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View>
+                      <Text 
                         style={{
                           textAlign: 'right',
                           color: 'white',
@@ -130,12 +188,10 @@ export default class TextMessages extends Component {
                           backgroundColor: 'grey',
                           marginTop: 10,
                         }}>
-                        {e.text}
+                        {e.msg}
+                        {'\n'}
+                        {moment(e.dateTime || moment.now()).fromNow()}
                       </Text>
-                    </View>
-                  ) : (
-                    <View>
-                      <Text> </Text>
                     </View>
                   )}
                 </View>
@@ -156,7 +212,7 @@ export default class TextMessages extends Component {
                 placeholder="Message Here"
                 underlineColorAndroid="transparent"
               />
-              <Button onPress={() => this.onSend()} title="SEND" />
+              <Button onPress={() => this.onSendMessage()} title="SEND" />
             </View>
           </KeyboardAwareScrollView>
         </SafeAreaView>
@@ -194,9 +250,10 @@ const styles = StyleSheet.create({
     bottom: 0, //Here is the trick
   },
   textInputStyle: {
-    height: 40,
+    height: 37,
     width: '84%',
     borderColor: 'rgb(86, 117, 114)',
+    marginRight: 2,
     borderWidth: 2,
     padding: 12,
     borderRadius: 5,
