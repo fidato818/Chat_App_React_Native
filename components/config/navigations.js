@@ -70,7 +70,7 @@ class IconWithBadge extends React.Component {
   }
 }
 
-const HomeIconWithBadge = props => {
+const HomeIconWithBadge = (props) => {
   // You should pass down the badgeCount in some other ways like context, redux, mobx or event emitters.
   return <IconWithBadge {...props} badgeCount={3} />;
 };
@@ -161,19 +161,20 @@ const DashboardNavigator = createStackNavigator(
     TextMessages: {
       screen: Messages,
       navigationOptions: {
-        header: null,
+        // header: null,
         headerStyle: { backgroundColor: '#FFF' },
         headerTitleStyle: { color: 'green' },
       },
     },
   },
-  {
+  { 
+    // initialRouteName: 'Login',
     initialRouteName: 'Home',
+    // initialRouteName: 'TextMessages',
 
     navigationOptions: ({ navigation, navigationOptions }) => {
- 
       const { params } = navigation.state;
-      console.log(params)
+      // console.log('params',);
       const { routeName } = navigation.state.routes[navigation.state.index];
       return {
         headerTitle: routeName,
