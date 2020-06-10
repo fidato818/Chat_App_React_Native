@@ -15,6 +15,7 @@ import {
   Dimensions,
   HeaderBackButton,
 } from 'react-native';
+import { Ionicons, AntDesign, FontAwesome, Entypo } from '@expo/vector-icons';
 import moment from 'moment';
 import {
   Avatar,
@@ -77,7 +78,7 @@ export default class TextMessages extends Component {
   };
   componentDidMount() {
     this.getmessages();
-    console.log(this.props.navigation.state.params);
+    // console.log(this.props.navigation.state.params);
   }
 
   getmessages = () => {
@@ -90,9 +91,9 @@ export default class TextMessages extends Component {
         var chat = data.val();
         var dateTime = chat.dateTime.split(',');
         var msg = '';
-        console.log('Chat', chat);
+        // console.log('Chat', chat);
         newArr.push(chat);
-        console.log('Success: ', newArr);
+        // console.log('Success: ', newArr);
       });
       this.setState({
         messagesData: newArr,
@@ -104,7 +105,7 @@ export default class TextMessages extends Component {
     var chatKey = this.props.navigation.state.params.chatKey;
     var friendId = this.props.navigation.state.params.friendId;
     const { text, message } = this.state;
-    console.log('text', message);
+    // console.log('text', message);
     var userId = firebase.auth().currentUser.uid;
     // var useremail = firebase.auth().currentUser.email;
     // // console.log(useremail)
@@ -180,13 +181,18 @@ export default class TextMessages extends Component {
                     </View>
                   ) : (
                     <View>
-                      <Text 
+                      <Text
                         style={{
-                          textAlign: 'right',
+                          maxWidth: 200,
+                          backgroundColor: 'teal',
+                          left: 0,
                           color: 'white',
                           padding: 8,
-                          backgroundColor: 'grey',
-                          marginTop: 10,
+                          borderRadius: 10,
+                          paddingLeft: 15,
+                          alignSelf: 'flex-end',
+                          marginTop: 3,
+                          textAlign: 'right',
                         }}>
                         {e.msg}
                         {'\n'}
@@ -203,7 +209,12 @@ export default class TextMessages extends Component {
             resetScrollToCoords={{ x: 0, y: 0 }}
             // contentContainerStyle={styles.container}
             scrollEnabled={false}>
+           
             <View style={styles.bottomView}>
+              <Text style={{ margin: 10 }}> 
+                <Entypo name="emoji-happy" size={26} />
+              </Text>
+ 
               <TextInput
                 style={styles.textInputStyle}
                 onChangeText={(text) => this.setState({ message: text })}
@@ -242,20 +253,22 @@ const styles = StyleSheet.create({
   bottomView: {
     // width: '100%',
     flex: 1,
-    height: 50,
+    height: 45,
     flexDirection: 'row',
     // justifyContent: 'center',
     alignItems: 'center',
     // position: 'absolute', //Here is the trick
     bottom: 0, //Here is the trick
-  },
+  }, 
   textInputStyle: {
+    position: 'relative',
     height: 37,
-    width: '84%',
+    width: '70%',
     borderColor: 'rgb(86, 117, 114)',
     marginRight: 2,
     borderWidth: 2,
     padding: 12,
+
     borderRadius: 5,
     fontFamily: 'quicksand-Regular',
 
