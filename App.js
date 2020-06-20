@@ -9,7 +9,7 @@ export default class App extends React.Component {
     super();
     this.state = {};
   }
-
+    
   render() {
     return (
       <PaperProvider>
@@ -17,6 +17,4 @@ export default class App extends React.Component {
       </PaperProvider>
     );
   }
-}
-
-
+}  
