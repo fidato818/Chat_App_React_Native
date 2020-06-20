@@ -67,7 +67,7 @@ export default class Chat extends React.Component {
           if (currentId === child.val().userId) {
             // if (child.val().userId) {
             // console.log('success');
-          } else {
+          } else { 
             tasks.push({
               username: child.val().username,
               email: child.val().email,
@@ -148,7 +148,7 @@ export default class Chat extends React.Component {
         ) {
           flag = true;
           chatKey = data.key;
-          console.log('user Exists', data.key);
+          // console.log('user Exists', data.key);
         }
       });
     }); 
