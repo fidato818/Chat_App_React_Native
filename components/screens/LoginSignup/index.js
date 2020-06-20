@@ -6,7 +6,7 @@ import {
   TextInput,
 } from 'react-native-paper';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import firebase from '../../config/firebase';
+import firebase from '../../config/Firebase';
 import { Facebook } from 'expo';
 class Signup extends React.Component {
   constructor(props) {
@@ -15,7 +15,7 @@ class Signup extends React.Component {
       username: '',
       email: '',
       password: '',
-      signToggle: true,
+      signToggle: false,
     };
   }
 
@@ -35,9 +35,10 @@ class Signup extends React.Component {
             .database()
             .ref('Users/' + userId)
             .set({
-              email,
+              email, 
               password,
               username,
+              userId
             })
             .then(data => {
               //success callback
