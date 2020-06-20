@@ -1,0 +1,56 @@
+    const reducedArray = resp.reduce(
+      (acc, curr) => `${acc}${curr.friendId === friendId}  | `,
+      ''
+    );
+ 
+    console.log(reducedArray);
+
+        var res = userArr.filter((a) => a.currentUserId);
+    var currentIdExists = res.map((e) => e.currentUserId);
+    var resp = userArr.filter((a) => a.friendId);
+    var friendIdExists = resp.map((e) => e.friendId);
+
+    let otherIdIndex = userArr.findIndex((item) => item.friendId === friendId);
+    console.log('otherIdIndex', otherIdIndex);
+
+
+
+
+
+        var newPostKey = firebase.database().ref().child('friendsList').push().key;
+    const currentUserId = firebase.auth().currentUser.uid;
+    var friendObj = { currentUserId, friendId, newPostKey };
+    this.firebaseRef = firebase.database().ref('friendsList');
+    let chatExists = false;
+    this.firebaseRef.on('value', (snapshot) => {
+      var newArr = [];
+      snapshot.forEach((data) => {
+        var users = data.val();
+        if (
+          (data.val().friendId === friendId &&
+            data.val().currentUserId === currentUserId) ||
+          (data.val().friendId === currentUserId &&
+            data.val().currentUserId === friendId)
+        ) {
+          chatExists = true;
+          console.log('user Exists');
+        } 
+      }); 
+      if (chatExists === false) {
+        firebase
+          .database()
+          .ref('friendsList/' + newPostKey)
+          .set(friendObj)
+          .then(() => {
+            console.log('user Save in Database');
+          })
+          .catch((error) => {
+            console.log('User Already Exist');
+            // document.getElementById('chatPanel').removeAttribute('style');
+            // document
+            //   .getElementById('divStart')
+            //   .setAttribute('style', 'display:none');
+            // hideChatList();
+          });
+      }
+    });
