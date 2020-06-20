@@ -19,7 +19,7 @@ import {
   IconButton,
 } from 'react-native-paper';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import firebase from '../../config/firebase';
+import firebase from '../../config/Firebase';
 
 export default class Status extends React.Component {
   constructor() {
