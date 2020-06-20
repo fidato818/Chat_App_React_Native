@@ -13,7 +13,7 @@ import {
   Divider,
 } from 'react-native-paper';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import firebase from '../../config/firebase';
+import firebase from '../../config/Firebase';
 
 export default class Profile extends React.Component {
   constructor() {
@@ -35,7 +35,7 @@ export default class Profile extends React.Component {
         });
       }
     });
-  }
+  } 
 
   logOutUser() {
     firebase.auth().signOut();
@@ -62,7 +62,7 @@ export default class Profile extends React.Component {
         <Divider />
       </PaperProvider>
     );
-  }
+  }  
 }
 const styles = StyleSheet.create({
   // container: {
