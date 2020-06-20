@@ -167,8 +167,8 @@ const DashboardNavigator = createStackNavigator(
       },
     },
   },
-  { 
-    // initialRouteName: 'Login',
+  {   
+    // initialRouteName: 'Login',  
     initialRouteName: 'Home',
     // initialRouteName: 'TextMessages',
 
