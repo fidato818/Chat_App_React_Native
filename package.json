@@ -25,6 +25,7 @@
     "react-native-paper": "2.16.0",
     "react-native-gifted-chat": "latest",
     "react-native-modal-dropdown": "0.7.0",
-    "react-native-keyboard-spacer": "0.4.1"
+    "react-native-keyboard-spacer": "0.4.1",
+    "react-native-keyboard-aware-scroll-view": "0.9.1"
   }
 }
