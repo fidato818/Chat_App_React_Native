@@ -1,0 +1,450 @@
+import React, { Component } from 'react';
+
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Alert,
+  Platform,
+  TouchableOpacity,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
+
+import { update_user_Customer } from '../store/actions/index';
+// import { styles } from './styles';
+import * as Yup from 'yup';
+import { Formik, ErrorMessage } from 'formik';
+import {
+  Avatar,
+  TextInput,
+  RadioButton,
+  HelperText,
+  Card,
+  Title,
+  Paragraph,
+  Button,
+  FAB,
+  Portal,
+  Provider,
+  Constants,
+  Snackbar,
+  IconButton,
+  Appbar,
+  Switch,
+  Colors,
+} from 'react-native-paper';
+import { update_user } from '../store/actions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { connect } from 'react-redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import firebase from '../config/firebase';
+var database = firebase.database();
+class Login extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      open: false,
+      visibleSnackbar: false,
+      errorInputs: false,
+      isSwitchOn: false,
+      toggleChange: false,
+
+      value: 'Female',
+      customerUser: [],
+      password: '123456789',
+      email: 'adnan@gmail.com',
+      region: '',
+      age: '',
+      gender: '',
+    };
+  }
+
+  componentDidMount() {
+    this.getResturantValidation();
+    // this.getResturantUserData();
+    // this.getCustomertUserData();
+  }
+
+  getResturantValidation = () => {
+    database.ref('Users').on('value', (snapshot) => {
+      var arr = [];
+      snapshot.forEach((data) => {
+        var childData = data.val();
+        arr.push(childData);
+      });
+      this.setState({
+        customerUser: arr,
+      });
+    });
+  };
+
+  /*================================================================================================== */
+  onLoginButtonPressed = async (values, actions) => {
+    const { customerUser } = this.state;
+    console.log('customer', customerUser);
+    const { email, password } = values;
+    this.setState({
+      isSubmitting: true,
+    });
+    const loginCustomerData = customerUser.filter(
+      (item) => item.email === email
+    );
+    const w = loginCustomerData.find((e) => e);
+
+    if (loginCustomerData.length !== 0) {
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password)
+        .then((user) => {
+          const userC = firebase.auth().currentUser;
+          // var userId = firebase.auth().currentUser.uid;
+          userC
+            .updateProfile({
+              displayName: w.fullname,
+              // uid: userId,
+              // photoURL: 'https://example.com/jane-q-user/profile.jpg',
+            })
+            .then((e) => {
+              console.log('e success', e);
+            })
+            .catch((error) => {
+              console.log('e error', error);
+            });
+          this.setState({
+            // openSnack: true,
+            visibleSnackbar: true,
+            isSubmitting: false,
+          });
+          this.props.store_user_C(user);
+          AsyncStorage.setItem('userData', JSON.stringify(user));
+          setTimeout(() => {
+            this.props.navigation.navigate('Home', {
+              displayNameProps: w.fullname,
+            });
+          }, 2000);
+        })
+        .catch((error) => {
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          if (errorCode === 'auth/invalid-email') {
+            Alert.alert('Error', errorMessage);
+            this.setState({
+              // openSnack: true,
+
+              isSubmitting: false,
+            });
+          }
+          if (errorCode === 'auth/wrong-password') {
+            Alert.alert('Error', errorMessage);
+            this.setState({
+              // openSnack: true,
+
+              isSubmitting: false,
+            });
+          }
+          Alert.alert('Error:', errorMessage);
+          if (errorCode === 'auth/user-not-found') {
+            Alert.alert('Error', errorMessage);
+            this.setState({
+              // openSnack: true,
+
+              isSubmitting: false,
+            });
+          }
+          console.error('Error writing document: ', error);
+        });
+    } else {
+      alert(
+        // 'Error:',
+        'There is no user registered as Customer'
+      );
+      this.setState({
+        openSnackError: true,
+        message: 'There is no user registered as Resturant Owner / Customer',
+        loaderToggle: false,
+        isSubmitting: false,
+      });
+      // alert('There is no user registered as Resturant Owner / Customer')
+    }
+  };
+  /*================================================================================================== */
+  /*================================================================================================== */
+
+  render() {
+    const {
+      text,
+      email,
+      password,
+      visibleSnackbar,
+      image,
+      toggleChange,
+      gender,
+      fullname,
+      confirmPassword,
+      age,
+      region,
+      country,
+      isSwitchOn,
+      resturantName,
+    } = this.state;
+    const screenHeight = Dimensions.get('window').height;
+    const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 0;
+    return (
+      <Provider style={{ backgroundColor: 'grey', flex: 1 }}>
+        <Appbar.Header
+          style={[
+            {
+              // backgroundColor: '#603F83FF',
+              color: 'white',
+              fontWeight: '200',
+              fontFamily: 'Comfortaa-Regular',
+            },
+          ]}>
+          <Appbar.Content title="Login" />
+        </Appbar.Header>
+
+        <ScrollView
+        // style={styles.scrollView}
+        // contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <KeyboardAwareScrollView
+            // extraScrollHeight={10}
+            enableOnAndroid={true}
+            keyboardShouldPersistTaps="handled"
+            // style={{ backgroundColor: 'teal' }}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+            // contentContainerStyle={styles.container}
+            scrollEnabled={false}>
+            <View
+              style={{
+                flex: 1,
+                // justifyContent: 'flex-start',
+                // marginBottom: 170,
+                paddingBottom: 10,
+                // backgroundColor: 'grey',
+              }}>
+              <View>
+                <Formik
+                  initialValues={{
+                    email: 'adnan@gmail.com',
+                    password: '123456789',
+                  }}
+                  validationSchema={Yup.object({
+                    email: Yup.string()
+                      .email('Please enter valid email')
+                      .required('Email Address is Required'),
+                    password: Yup.string()
+                      // .min(
+                      //   8,
+                      //   ({ min }) =>
+                      //     `Password must be at least ${min} characters`
+                      // )
+                      .required('Password is required'),
+                  })}
+                  onSubmit={(values, actions) => {
+                    this.onLoginButtonPressed(values, actions);
+                  }}
+                  // onSubmit={(values, formikActions) => {
+                  //   const { fullname, email, password } = values;
+                  //   this.handlSubmit(fullname, email, password);
+                  //   setTimeout(() => {
+                  //     // // Alert.alert(JSON.stringify(values));
+
+                  //     // // Important: Make sure to setSubmitting to false so our loading indicator
+                  //     // // goes away.
+                  //     formikActions.setSubmitting(false);
+                  //   }, 500);
+                  // }}
+                >
+                  {(props) =>
+                    console.log('props') || (
+                      <View style={{ margin: 10 }}>
+                        <TextInput
+                          theme={{
+                            colors: {
+                              // placeholder: 'white',
+                              // text: 'white',
+                              primary: '#3526a5',
+                              underlineColor: 'transparent',
+                              // background: '#003489',
+                            },
+                          }}
+                          label="Email"
+                          onChangeText={props.handleChange('email')}
+                          onBlur={props.handleBlur('email')}
+                          value={props.values.email}
+                          // autoFocus
+                          style={styles.input}
+                          onSubmitEditing={() => {
+                            // on certain forms, it is nice to move the user's focus
+                            // to the next input when they press enter.
+                            this.emailInput.focus();
+                          }}
+                        />
+                        {props.touched.email && props.errors.email ? (
+                          <Text style={styles.error}>{props.errors.email}</Text>
+                        ) : null}
+                        <View
+                          style={{
+                            position: 'relative',
+                          }}>
+                          <TextInput
+                            theme={{
+                              colors: {
+                                // placeholder: 'white',
+                                // text: 'white',
+                                primary: '#3526a5',
+                                underlineColor: 'transparent',
+                                // background: '#003489',
+                              },
+                            }}
+                            label="Password"
+                            type="password"
+                            onChangeText={props.handleChange('password')}
+                            onBlur={props.handleBlur('password')}
+                            value={props.values.password}
+                            secureTextEntry={
+                              !this.state.showPassword ? true : false
+                            }
+                            // autoFocus
+                            style={styles.input}
+                            onSubmitEditing={() => {
+                              // on certain forms, it is nice to move the user's focus
+                              // to the next input when they press enter.
+                              this.emailInput.focus();
+                            }}
+                          />
+                          <IconButton
+                            style={{
+                              position: 'absolute',
+                              right: 5,
+                              flex: 1,
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                            }}
+                            icon={!this.state.showPassword ? 'eye-off' : 'eye'}
+                            color={Colors.black500}
+                            size={25}
+                            onPress={() =>
+                              this.setState({
+                                showPassword: !this.state.showPassword,
+                              })
+                            }
+                          />
+                        </View>
+                        {props.touched.password && props.errors.password ? (
+                          <Text style={styles.error}>
+                            {props.errors.password}
+                          </Text>
+                        ) : null}
+
+                        <Button
+                          onPress={props.handleSubmit}
+                          // color="#C7D3D4FF"
+                          color="#603F83FF"
+                          mode="contained"
+                          loading={this.state.isSubmitting}
+                          disabled={this.state.isSubmitting}
+                          style={{ marginTop: 16 }}>
+                          Submit
+                        </Button>
+
+                        <TouchableOpacity
+                          disabled={this.state.isSubmitting}
+                          onPress={() =>
+                            this.props.navigation.navigate('Signup')
+                          }>
+                          <Text
+                            style={{
+                              margin: 10,
+                              textAlign: 'center',
+                              color: 'grey',
+                              fontFamily: 'Comfortaa-Regular',
+                            }}>
+                            Don't Have a account? Register
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )
+                  }
+                </Formik>
+
+                {/*
+                  <Text />
+                  <Button
+                    color="rgb(44, 95, 45)"
+                    dark={true}
+                    compact={true}
+                    mode="contained"
+                    onPress={() => this.loginWithFacebook()}>
+                    <Text
+                      style={{
+                        color: 'white',
+                        fontFamily: 'Comfortaa-Regular',
+                      }}>
+                      Login With Facebook
+                    </Text>
+                  </Button>
+                  */}
+              </View>
+            </View>
+          </KeyboardAwareScrollView>
+        </ScrollView>
+        <Snackbar
+          style={{
+            fontFamily: 'Comfortaa-Regular',
+            backgroundColor: '#603F83FF',
+          }}
+          visible={this.state.visibleSnackbar}
+          onDismiss={() => this.setState({ visibleSnackbar: false })}
+          duration={1500}
+          action={{
+            label: '',
+            onPress: () => {
+              // Do something
+            },
+          }}>
+          Login successfully
+        </Snackbar>
+      </Provider>
+    );
+  }
+}
+const styles = StyleSheet.create({
+  // headerColor: {
+  //   backgroundColor: '#603F83FF',
+  // },
+  // btnColor: {
+  //   color: '#b23a48',
+  // },
+  // scrollView: {
+  //   // backgroundColor: 'pink',
+  //   // marginHorizontal: 20,
+  //   // flex: 2
+  // },
+  input: {
+    marginBottom: 5,
+    backgroundColor: 'transparent',
+    height: 55,
+  },
+  error: {
+    color: 'red',
+  },
+});
+
+const mapStateToProps = (state) => {
+  // console.log(state)
+  return {
+    user: state.user,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    store_user_C: (userlogin) => dispatch(update_user_Customer(userlogin)),
+  };
+};
+// export default withStyles(styles)(Login);
+export default connect(mapStateToProps, mapDispatchToProps)(Login);
