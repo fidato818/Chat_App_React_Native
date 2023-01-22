@@ -53,8 +53,8 @@ class Login extends Component {
 
       value: 'Female',
       customerUser: [],
-      password: '123456789',
-      email: 'adnan@gmail.com',
+      password: '123456',
+      email: 'ahmed@gmail.com',
       region: '',
       age: '',
       gender: '',
@@ -116,7 +116,7 @@ class Login extends Component {
             // openSnack: true,
             visibleSnackbar: true,
             isSubmitting: false,
-          });
+          }); 
           this.props.store_user_C(user);
           AsyncStorage.setItem('userData', JSON.stringify(user));
           setTimeout(() => {
@@ -173,22 +173,7 @@ class Login extends Component {
   /*================================================================================================== */
 
   render() {
-    const {
-      text,
-      email,
-      password,
-      visibleSnackbar,
-      image,
-      toggleChange,
-      gender,
-      fullname,
-      confirmPassword,
-      age,
-      region,
-      country,
-      isSwitchOn,
-      resturantName,
-    } = this.state;
+
     const screenHeight = Dimensions.get('window').height;
     const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 0;
     return (
@@ -228,8 +213,8 @@ class Login extends Component {
               <View>
                 <Formik
                   initialValues={{
-                    email: 'adnan@gmail.com',
-                    password: '123456789',
+                    email: 'user1@abc.com',
+                    password: '12345678',
                   }}
                   validationSchema={Yup.object({
                     email: Yup.string()

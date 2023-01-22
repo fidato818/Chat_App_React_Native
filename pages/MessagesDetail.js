@@ -86,7 +86,7 @@ class Chat extends Component {
 
   getMsgFromDB = () => {
     const { roomId } = this.props.route.params;
-    // var roomId = '-NMKiZM9upFybUlodio5'; 
+    // var roomId = '-NMKiZM9upFybUlodio5';
 
     database.ref('messages/' + roomId).on('value', (snapshot) => {
       var newArr = [];
@@ -130,31 +130,40 @@ class Chat extends Component {
 
   render() {
     const { userData, currenUserId, roomId } = this.props.route.params;
-
+    console.log(userData, currenUserId, roomId);
     return (
       <View style={styles.container}>
-        <Appbar.Header style={styles.appB}>
-          <IconButton
-            color="white"
-            icon={require('../assets/snack-icon.png')}
-            onPress={() => this.props.navigation.openDrawer()}
-          />
+        <Appbar.Header>
+          <Appbar.BackAction onPress={this._goBack} />
           <Appbar.Content
-            color="white"
-            style={{
-              alignItems: 'center',
-            }}
-            title={userData.displayname}
+            title={userData.friendName || userData.fullname}
+            subtitle="online"
           />
 
-          {!this.state.toggleWindow && (
-            <Appbar.Action
-              color="white"
-              icon="bell"
-              onPress={this._handleSearch}
-            />
-          )}
+          <Appbar.Action icon="dots-vertical" onPress={this._handleMore} />
         </Appbar.Header>
+        {/*<Appbar.Header style={styles.appB}>
+      <IconButton
+        color="white"
+        icon={require('../assets/snack-icon.png')}
+        onPress={() => this.props.navigation.openDrawer()}
+      />
+      <Appbar.Content
+        color="white"
+        style={{
+          alignItems: 'center',
+        }}
+        title={userData.friendName}
+      />
+
+      {!this.state.toggleWindow && (
+        <Appbar.Action
+          color="white"
+          icon="bell"
+          onPress={this._handleSearch}
+        />
+      )}
+    </Appbar.Header>*/}
         <FlatList
           style={styles.list}
           data={this.state.messageArr}

@@ -1,6 +1,4 @@
-import * as React from 'react';
 import { StatusBar } from 'react-native';
-
 import AppNavigator from './config/navigations';
 import { store, persistor } from './store/index';
 import { Provider as StoreProvider } from 'react-redux';
@@ -20,22 +18,21 @@ const theme = {
     accent: '#f1c40f',
   },
 };
-export default class App extends React.Component {
-  render() {
-    return (
-      <PaperProvider theme={theme}>
-        <StoreProvider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <AppNavigator />
-          </PersistGate>
-        </StoreProvider>
-        <StatusBar
-          hidden={false}
-          translucent={true}
-          // backgroundColor={styles.headerColor}
-          barStyle="light-content"
-        />
-      </PaperProvider>
-    );
-  }
-}
+const App = () => {
+  return (
+    <PaperProvider theme={theme}>
+      <StoreProvider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <AppNavigator />
+        </PersistGate>
+      </StoreProvider>
+      <StatusBar
+        hidden={false}
+        translucent={true}
+        // backgroundColor={styles.headerColor}
+        barStyle="light-content"
+      />
+    </PaperProvider>
+  );
+};
+export default App;

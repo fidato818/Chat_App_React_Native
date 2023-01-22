@@ -7,33 +7,18 @@ import {
   Text,
   View,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/AntDesign';
+import { remove_user_Customer } from '../store/actions';
+import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firebase from '../config/firebase';
 var database = firebase.database();
 import {
   List,
-  Surface,
   Avatar,
-  Title,
-  Paragraph,
-  Button,
-  FAB,
-  Portal,
-  Constants,
-  Snackbar,
-  Dialog,
-  Card,
   Divider,
-  IconButton,
-  HelperText,
   Appbar,
-  Colors,
-  Menu,
-  Searchbar,
-  DefaultTheme,
-  Badge,
   Provider as PaperProvider,
   Subheading,
 } from 'react-native-paper';
@@ -43,20 +28,39 @@ class Contact extends Component {
     pushNotifications: true,
   };
 
+  componentDidMount() {
+    this.getCurrentUserDetail();
+  }
+  getCurrentUserDetail = () => {
+    const { user } = this.props;
+    const currentUserId = user.user && user.user.uid;
+
+    database.ref('Users/' + currentUserId).on('value', (snapshot) => {
+      var childData = snapshot.val();
+
+      const { email, createAt, fullName, displayname } = childData;
+      this.setState({
+        email,
+        createAt,
+        fullName,
+        displayname,
+      });
+    });
+  };
   onPressSetting = () => {
     this.props.navigation.navigate('Options');
   };
 
   onChangePushNotifications = () => {
     this.setState((state) => ({
-      pushNotifications: !state.pushNotifications, 
+      pushNotifications: !state.pushNotifications,
     }));
   };
 
   logoutApp = async () => {
     try {
-      const posts = await AsyncStorage.removeItem('userToken');
-      let postsFav = JSON.parse(posts);
+      // const posts = await AsyncStorage.removeItem('userToken');
+      // let postsFav = JSON.parse(posts);
 
       firebase
         .auth()
@@ -72,17 +76,15 @@ class Contact extends Component {
       alert(`Error: ${error}`);
     }
   };
-  render() { 
-    // const {
-    //   avatar,
-    //   name,
-    //   emails: [firstEmail],
-    // } = this.props;
+  render() {
+    const { user } = this.props;
+    const { email, createAt } = this.state;
+
     return (
       <PaperProvider>
         <Appbar.Header
           style={{
-            backgroundColor: 'red',
+            backgroundColor: 'teal',
             color: 'white',
             fontWeight: '200',
             fontFamily: 'Comfortaa-Regular',
@@ -96,19 +98,23 @@ class Contact extends Component {
         <ScrollView style={styles.scroll}>
           <View style={styles.userRow}>
             <View style={styles.userImage}>
-              <Avatar.Image
-                size={50}
-                source={require('../assets/adaptive-icon.png')}
-              />
+              <TouchableOpacity
+                style={styles.btnSend}
+                onPress={() => this.logoutApp()}>
+                <Avatar.Image
+                  size={50}
+                  source={require('../assets/adaptive-icon.png')}
+                />
+              </TouchableOpacity>
             </View>
             <View>
-              <Text style={{ fontSize: 16 }}>Adnan Ahmed</Text>
+              <Text style={{ fontSize: 16 }}>Let's Chat</Text>
               <Text
                 style={{
                   color: 'gray',
                   fontSize: 16,
                 }}>
-                adnan@gmail.com
+                {email}
               </Text>
             </View>
           </View>
@@ -205,9 +211,19 @@ class Contact extends Component {
         </ScrollView>
       </PaperProvider>
     );
-  }
+  }  
 }
-export default Contact;
+const mapDispatchToProps = (dispatch) => {
+  return {
+    logout_user: () => dispatch(remove_user_Customer()),
+  };
+};
+const mapStateToProps = (state) => ({
+  user: state.user,
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Contact);
+
 const styles = StyleSheet.create({
   scroll: {
     backgroundColor: 'white',
@@ -221,11 +237,11 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   userImage: {
-    marginRight: 12,
+    marginRight: 12, 
   },
-  listItemContainer: {
-    height: 55,
-    borderWidth: 0.5,
-    borderColor: '#ECECEC',
-  },
+  // listItemContainer: {
+  //   height: 55,
+  //   borderWidth: 0.5,
+  //   borderColor: '#ECECEC',
+  // },
 });

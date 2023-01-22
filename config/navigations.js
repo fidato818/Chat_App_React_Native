@@ -1,10 +1,4 @@
 import React from 'react';
-import { Transition } from 'react-native-reanimated';
-import {
-  AntDesign as Icon,
-  FontAwesome as FontAwesomeIcon,
-} from 'react-native-vector-icons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CustomDrawerContentComponent from './Drawer';
@@ -19,19 +13,10 @@ import OTPScreen from '../pages/OTP';
 
 //Stacks
 import BottomNav from './BottomNav';
-import CustomNavigationBar from '../components/CustomNavigationBar';
 
-
-
-import {
-  createDrawerNavigator,
-  DrawerContentScrollView,
-  DrawerItemList,
-  DrawerItem,
-} from '@react-navigation/drawer';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 
 import { connect } from 'react-redux';
-
 
 const Stack = createNativeStackNavigator();
 
@@ -81,16 +66,24 @@ const DrawerNavi = (props) => {
 
 const App = (props) => {
   // console.log('props', props);
-  const currentUser = props.props && props.user.user;
-  // console.log('currentUser', currentUser);
+  const currentValidation = props.user && props.user.user;
+  const currentUser =
+    currentValidation !== '' || currentValidation === undefined;
+  // console.log('currentUser on Nav', currentValidation);
+  // console.log('currentUser on Nav', currentUser);
   return (
     <NavigationContainer>
       {/*   {currentUser !== '' ? <DrawerNavigator /> : <LoginStackNavigator />}*/}
-      {currentUser !== '' ? <HomeStack /> : <LoginStack />}
+      {currentUser ? <HomeStack /> : <LoginStack />}
     </NavigationContainer>
   );
 };
-
+// const mapStateToProps = (state) => {
+//   console.log('state', state);
+//   // return {
+//   //   user: state.user,
+//   // };
+// };
 const mapStateToProps = (state) => ({
   user: state.user,
 });

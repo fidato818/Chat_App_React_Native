@@ -26,52 +26,61 @@ class MessagesScreen extends React.Component {
   }
 
   componentDidMount() {
+    this.getUsers();
     this.getRooms();
   }
 
   getRooms = () => {
+    database.ref('userRooms').on('value', (snapshot) => {
+      var newArr = [];
+      snapshot.forEach((data) => {
+        var childData = data.val();
+        // console.log('chi', childData);
+        newArr.push(childData);
+      });
+      this.setState({
+        roomArr: newArr,
+      });
+    });
+  };
+  getUsers = () => {
     const { user } = this.props;
     var currentUserId = user.user && user.user.uid;
-    console.log('currentUserId', currentUserId);
-    database
-      .ref('userRooms/')
-      // .orderByChild('currentUserId')
-      // .equalTo(currentUserId)
-      .on('value', (snapshot) => {
-        var newArr = [];
-        snapshot.forEach((data) => {
-          var childData = data.val();
-          console.log('chi', childData);
-          newArr.push(childData);
-        });
-        this.setState({
-          roomArr: newArr.filter(
-            (e) =>
-              e.currentUserId === currentUserId || e.friendId === currentUserId
-          ),
-        });
+    console.log(currentUserId);
+    database.ref('Users').on('value', (snapshot) => {
+      var newArr = [];
+      snapshot.forEach((data) => {
+        var childData = data.val();
+        // console.log('chi', childData);
+        newArr.push(childData);
       });
+      this.setState({
+        messagesUsers: newArr.filter(
+          (o) => o.userId !== currentUserId || o.userId !== currentUserId
+        ),
+      });
+    });
   };
 
   startChat = (e) => {
-    const { roomArr } = this.state;
     const { user } = this.props;
-    // var currentUserId = user.user && user.user.uid;
-    var currentUserId = e.currentUserId;
-    var listId = e.friendId;
+    const { roomArr } = this.state;
+    var currentUserId = user.user && user.user.uid;
 
+    var listId = e.uid || e.userId;
     var filtData = roomArr.filter(
       (ev) =>
-        (ev.currentUserId === currentUserId && listId === ev.friendId) ||
+        (ev.currentUserId === listId && listId === ev.currentUserId) ||
         (ev.friendId === listId && ev.currentUserId === currentUserId)
     );
     // console.log('currentUserId', currentUserId);
+    // console.log('listId', listId);
     // console.log('filtData', filtData);
-    // console.log('e', e);
     var existRoomId = filtData.find((event) => event);
-    console.log('existRoomId', existRoomId);
+
     if (existRoomId === undefined) {
-      // this.createRoom(e);
+      this.createRoom(e);
+      // console.log('asd', e, currentUserId);
     } else {
       this.props.navigation.navigate('Messages Detail', {
         userData: e,
@@ -83,17 +92,17 @@ class MessagesScreen extends React.Component {
   createRoom = (e) => {
     const { user } = this.props;
     var currentUserId = user.user && user.user.uid;
-    // console.log('currentUserId', currentUserId);
-    var friendId = e.friendId;
-    var roomId = e.roomId;
+    var currentUserName = user.user && user.user.displayName;
+    console.log(user.user);
+    var roomId = firebase.database().ref().child('userRooms').push().key;
     var roomObj = {
       currentUserId,
-      friendId,
+      friendId: e.uid || e.userId,
       friendName: e.displayname || e.fullname,
       roomId,
+      currentUserName,
     };
-    // console.log('e', user.user);
-    // console.log('roomObj', roomObj);
+    console.log('roomObj', roomObj);
     database
       .ref('userRooms/' + roomId)
       .set(roomObj)
@@ -111,10 +120,8 @@ class MessagesScreen extends React.Component {
   };
 
   render() {
-    const { messagesUsers, roomArr } = this.state;
-    const { user } = this.props;
-    var currentUserId = user.user && user.user.uid;
-    console.log('currentUserId', currentUserId);
+    const { messagesUsers } = this.state;
+
     return (
       <View style={styles.container}>
         <Appbar.Header style={styles.appB}>
@@ -127,7 +134,7 @@ class MessagesScreen extends React.Component {
             style={{
               alignItems: 'center',
             }}
-            title="Chat"
+            title="Contacts"
           />
 
           {!this.state.toggleWindow && (
@@ -136,35 +143,17 @@ class MessagesScreen extends React.Component {
         </Appbar.Header>
         <SafeAreaView style={styles.container}>
           <ScrollView style={styles.scrollView}>
-            {roomArr.map((e, i) => {
-              return e.friendId !== currentUserId ? (
-                <View>
-                  <Pressable onPress={() => this.startChat(e)}>
-                    <Card elevation={3} style={{ margin: 5 }}>
-                      <Card.Title
-                        title={e.friendName}
-                        subtitle={e.email}
-                        left={(props) => (
-                          <Avatar.Icon {...props} icon="folder" />
-                        )}
-                      />
-                    </Card>
-                  </Pressable>
-                </View>
-              ) : (
-                <View>
-                  <Pressable onPress={() => this.startChat(e)}>
-                    <Card elevation={3} style={{ margin: 5 }}>
-                      <Card.Title
-                        title={e.currentUserName}
-                        subtitle={e.email}
-                        left={(props) => (
-                          <Avatar.Icon {...props} icon="folder" />
-                        )}
-                      />
-                    </Card>
-                  </Pressable>
-                </View>
+            {messagesUsers.map((e, i) => {
+              return (
+                <Pressable onPress={() => this.startChat(e)}>
+                  <Card elevation={3} style={{ margin: 5 }}>
+                    <Card.Title
+                      title={e.displayname || e.fullname}
+                      subtitle={e.email}
+                      left={(props) => <Avatar.Icon {...props} icon="folder" />}
+                    />
+                  </Card>
+                </Pressable>
               );
             })}
           </ScrollView>

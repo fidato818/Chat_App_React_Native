@@ -4,29 +4,19 @@ import {
   StyleSheet,
   Text,
   View,
-
   Platform,
-
   Dimensions,
-
   ScrollView,
-
 } from 'react-native';
 import * as Yup from 'yup';
 import { Formik, ErrorMessage } from 'formik';
 import {
-
   TextInput,
-
-
   Button,
-
   Provider,
-
   Snackbar,
   IconButton,
   Appbar,
-
   Colors,
 } from 'react-native-paper';
 
@@ -216,8 +206,6 @@ class Login extends Component {
                           style={{ marginTop: 16 }}>
                           Login
                         </Button>
-
-                        
                       </View>
                     )
                   }

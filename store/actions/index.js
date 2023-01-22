@@ -5,7 +5,7 @@ const update_user_Customer = (user) => {
   };
 };
 const remove_user_Customer = () => {
-  return {
+  return { 
     type: 'REMOVE_USER',
     data: null,
   };
