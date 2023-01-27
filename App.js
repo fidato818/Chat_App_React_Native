@@ -1,4 +1,5 @@
-import { StatusBar } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StatusBar, AppState } from 'react-native';
 import AppNavigator from './config/navigations';
 import { store, persistor } from './store/index';
 import { Provider as StoreProvider } from 'react-redux';
@@ -6,7 +7,7 @@ import { Provider as StoreProvider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 import { enableScreens } from 'react-native-screens';
-
+import SplashScreen from './pages/Splash';
 enableScreens();
 console.disableYellowBox = true;
 const theme = {
@@ -19,6 +20,31 @@ const theme = {
   },
 };
 const App = () => {
+  const [outOfApp, setOutOfApp] = useState(true);
+  const appStateChangeListener = (val) => {
+    if (val == 'active') {
+      //val will be "active" only when app is in foreground
+      // use navigation to navigate to Splashscreen
+      console.log('Out');
+      setOutOfApp(false);
+    } else {
+      console.log('in');
+      setOutOfApp(true);
+    }
+  };
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      appStateChangeListener
+    );
+
+    return () => {
+      AppState.removeEventListener('change', appStateChangeListener);
+    };
+  }, []);
+  if (outOfApp) {
+    return <SplashScreen />;
+  } else
   return (
     <PaperProvider theme={theme}>
       <StoreProvider store={store}>

@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CustomDrawerContentComponent from './Drawer';
 
 //pages
-import HomeScreen from '../pages/Home';
+import Splashcreen from '../pages/Splash';
 import MessagesDetailScreen from '../pages/MessagesDetail';
 import LoginScreen from '../pages/Login';
 import SignupScreen from '../pages/Signup';
@@ -23,12 +23,12 @@ const Stack = createNativeStackNavigator();
 const LoginStack = (props) => {
   return (
     <Stack.Navigator
-      initialRouteName="Login"
+      initialRouteName="Splash"
       screenOptions={{
         headerShown: false,
         // header: (props) => <CustomNavigationBar {...props} />,
       }}>
-      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Splash" component={Splashcreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="OTP" component={OTPScreen} />
     </Stack.Navigator>
@@ -37,11 +37,12 @@ const LoginStack = (props) => {
 const HomeStack = (props) => {
   return (
     <Stack.Navigator
-      initialRouteName="MessagesDetailScreen"
+      // initialRouteName="Splashcreen"
       screenOptions={{
         headerShown: false,
         // header: (props) => <CustomNavigationBar {...props} />,
       }}>
+      // <Stack.Screen name="Splash" component={Splashcreen} />
       <Stack.Screen name="Home" component={BottomNav} />
       <Stack.Screen name="Messages Detail" component={MessagesDetailScreen} />
     </Stack.Navigator>
