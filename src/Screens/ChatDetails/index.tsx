@@ -1,7 +1,7 @@
 import {onValue} from '@react-native-firebase/database';
 import {useSetState} from 'ahooks';
 import React, {useEffect} from 'react';
-import {StyleSheet, Text, TextInput, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
 import {Appbar} from 'react-native-paper';
 import {ref} from 'yup';
 import database from '@react-native-firebase/database';
@@ -10,18 +10,21 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Card} from 'react-native-paper';
 import DocumentPicker from 'react-native-document-picker';
 import {useSelector} from 'react-redux';
-
+import moment from 'moment';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {SafeAreaView} from 'react-native-safe-area-context';
 const ChatDetails = ({route}: {route: any}) => {
   const getUserData = useSelector((state: any) => state.user);
   const {email, uid} = getUserData;
+  const {chatRoomId, userEmail, otherUserId} = route.params;
 
   const [state, setState] = useSetState({
     toggleLogin: false,
     chatArr: [],
     messageArr: [],
+    write_txt: '',
   });
   useEffect(() => {
-    const {chatRoomId} = route.params;
     listenForMessages(chatRoomId);
   }, [setState]);
 
@@ -32,33 +35,51 @@ const ChatDetails = ({route}: {route: any}) => {
       .ref(`Chat_Messages/${chatRoomId}/messages`)
       .on('value', (snapshot: any) => {
         var newArr: [] = [];
-        const userData = snapshot.val();
-        // console.log('User data: ', chatRoomId);
+
         snapshot.forEach((data: any) => {
           var childData = data.val();
-          console.log(childData);
+
           newArr.push(childData as never);
         });
         setState({messageArr: newArr});
       });
   };
-  // const sendMessage = senderId => {
-  //   const {write_txt, chatRoomId} = state;
-  //   // console.log(chatRoomId, senderId, text)
-  //   const timestamp = Date.now();
-  //   // const chatRoomId = push(child(ref(db), 'messages')).key;
-  //   const newPostKey = push(child(ref(db), 'messages')).key;
-  //   // const userId = "69291db2-83cb-4b06-8667-b06b03ab5930";
-  //   // var chatRoomId = "190b623a-f4f0-4789-a0b5-dbe5dd9903af"
-  //   set(ref(db, `Chat_Messages/${chatRoomId}/messages/${newPostKey}`), {
-  //     senderId,
-  //     write_txt,
-  //     timestamp,
-  //     newPostKey,
-  //   });
-  //   // setNewMessage('');
-  //   setState({write_txt: ''});
-  // };
+  const sendMessage = (senderId: any) => {
+    const {write_txt} = state;
+
+    const timestamp = Date.now();
+    const newPostKey: any = database().ref('messages').push().key;
+
+    database()
+      .ref(`Chat_Messages/${chatRoomId}/messages/${newPostKey}`)
+      .set({
+        senderId,
+        write_txt,
+        timestamp,
+        newPostKey,
+      })
+      .then(() => {
+        console.log('Data set.');
+        database().ref(`users/${otherUserId}`).update({
+          senderId,
+          write_txt,
+          timestamp,
+          newPostKey,
+        });
+        // AsyncStorage.setItem('Last_Msg', JSON.stringify(write_txt));
+
+        // listenForMessages();
+      })
+      .then(() => {
+        database().ref(`users/${senderId}`).update({
+          senderId,
+          write_txt,
+          timestamp,
+          newPostKey,
+        });
+        setState({write_txt: ''});
+      });
+  };
   return (
     <View style={styles.Container}>
       <Appbar.Header
@@ -69,51 +90,71 @@ const ChatDetails = ({route}: {route: any}) => {
       //   },
       // }}
       >
-        <Appbar.Content tvParallaxProperties title="Chat Detail" />
+        <Appbar.Content
+          tvParallaxProperties
+          title={userEmail ?? 'Chat Detail'}
+        />
       </Appbar.Header>
-      <View>
-        {state.messageArr.map((e: any, i) => {
-          return (
-            <>
-              {e.senderId === uid ? (
-                <View
-                  key={i}
-                  style={{
-                    backgroundColor: 'grey',
-                    width: 250,
-                    marginHorizontal: 8,
-                    marginVertical: 8,
-                    borderRadius: 10,
-                  }}>
-                  <Text style={{color: '#fff', paddingLeft: 8, fontSize: 15}}>
-                    {e.write_txt}
-                  </Text>
-                  <Text style={{color: '#fff', paddingLeft: 8, fontSize: 10}}>
-                    {/* {new Date().toDateString()} */}
-                    {e.timestamp}
-                  </Text>
+      <Text style={{textAlign: 'center'}}>Current User: {email}</Text>
+      <View style={{paddingBottom: 140}}>
+        <SafeAreaView>
+          <ScrollView>
+            {state.messageArr.map((e: any, i: number) => {
+              // console.log('e', e);
+              return (
+                <View>
+                  {e.senderId === uid ? (
+                    <View
+                      key={e.newPostKey}
+                      style={{
+                        backgroundColor: 'green',
+                        width: 250,
+                        marginHorizontal: 8,
+                        marginVertical: 8,
+                        alignSelf: 'flex-end',
+                        borderRadius: 10,   padding: 5,
+                      }}>
+                      <Text
+                        style={{color: '#fff', paddingLeft: 8, fontSize: 15}}>
+                        {e.write_txt}
+                      </Text>
+                      <Text
+                        style={{color: '#fff', paddingLeft: 8, fontSize: 10}}>
+                        {moment(e.timestamp).format('HH:mm')}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View
+                      key={e.newPostKey}
+                      style={{
+                        backgroundColor: 'grey',
+                        width: 250,
+                        marginHorizontal: 8,
+                        marginVertical: 8,
+                        borderRadius: 10,
+                        padding: 5,
+                      }}>
+                      <Text
+                        style={{color: '#fff', paddingLeft: 8, fontSize: 15}}>
+                        {e.write_txt}
+                      </Text>
+                      <Text
+                        style={{
+                          color: '#fff',
+                          paddingRight: 8,
+                          fontSize: 10,
+                          textAlign: 'right',
+                        }}>
+                        {/* {new Date().toDateString()} */}
+                        {moment(e.timestamp).format('HH:mm')}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-              ) : (
-                <View
-                  style={{
-                    backgroundColor: 'grey',
-                    width: 250,
-                    marginHorizontal: 8,
-                    marginVertical: 8,
-                    alignSelf: 'flex-end',
-                    borderRadius: 10,
-                  }}>
-                  <Text style={{color: '#fff', paddingLeft: 8, fontSize: 15}}>
-                    {e.write_txt}
-                  </Text>
-                  <Text style={{color: '#fff', paddingLeft: 8, fontSize: 10}}>
-                    {e.timestamp}
-                  </Text>
-                </View>
-              )}
-            </>
-          );
-        })}
+              );
+            })}
+          </ScrollView>
+        </SafeAreaView>
 
         {/* <View
           style={{
@@ -163,7 +204,12 @@ const ChatDetails = ({route}: {route: any}) => {
           paddingLeft: 5,
         }}>
         <View style={styles.inputConChild}>
-          <TextInput style={styles.input} placeholder="Enter Here" />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Here"
+            onChangeText={e => setState({write_txt: e})}
+            value={state.write_txt}
+          />
           <MaterialCommunityIcons
             style={[styles.sendIcon, {marginRight: 25}]}
             name="paperclip"
@@ -177,6 +223,8 @@ const ChatDetails = ({route}: {route: any}) => {
             name="send"
             size={24}
             color="black"
+            onPress={() => sendMessage(uid)}
+            // onPress={() => console.log('asd')}
           />
         </View>
       </View>

@@ -18,6 +18,7 @@ import {
 import {toggleOff, toggleOn} from '../../Store/userReducers';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
+import {useAppSelector} from '../../Store/hooks';
 const theme = {
   ...DefaultTheme,
   roundness: 2,
@@ -30,7 +31,7 @@ const theme = {
 const SettingScreen = () => {
   const navigation = useNavigation();
   const theme = useTheme();
-  const themeSelector = useSelector((state: any) => state.isThemeDark);
+  const themeSelector = useAppSelector((state: any) => state.isThemeDark);
   const dispatch = useDispatch();
 
   const togglTheme = () => {
@@ -62,26 +63,24 @@ const SettingScreen = () => {
       </Appbar.Header>
 
       <View style={{margin: 10}}>
-        <Pressable onPress={() => navigation.navigate('Settings' as never)}>
-          <Card style={{marginTop: 10}}>
-            <Card.Title
-              title="Setting"
-              // subtitle="Card Subtitle"
+        <Card style={{marginTop: 10}}>
+          <Card.Title
+            title="Setting"
+            // subtitle="Card Subtitle"
 
-              right={props => (
-                <TouchableOpacity onPress={() => togglTheme()}>
-                  <Switch
-                    trackColor={{false: '#767577', true: '#81b0ff'}}
-                    thumbColor={themeSelector ? '#f5dd4b' : '#f4f3f4'}
-                    ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => togglTheme()}
-                    value={themeSelector}
-                  />
-                </TouchableOpacity>
-              )}
-            />
-          </Card>
-        </Pressable>
+            right={props => (
+              <TouchableOpacity onPress={() => togglTheme()}>
+                <Switch
+                  trackColor={{false: '#767577', true: '#81b0ff'}}
+                  thumbColor={themeSelector ? '#f5dd4b' : '#f4f3f4'}
+                  ios_backgroundColor="#3e3e3e"
+                  onValueChange={() => togglTheme()}
+                  value={themeSelector}
+                />
+              </TouchableOpacity>
+            )}
+          />
+        </Card>
       </View>
     </View>
   );

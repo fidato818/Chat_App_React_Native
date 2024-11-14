@@ -6,8 +6,8 @@ import {
 } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import HomeScreen from '../Screens/Home';
-import ChatScreen from '../Screens/Chat';
+import HomeScreen from '../Screens/Chat';
+import ChatScreen from '../Screens/Home';
 import ChatDetailScreen from '../Screens/ChatDetails';
 import SettingScreen from '../Screens/Settings';
 
@@ -67,8 +67,8 @@ const MainNavigation = () => {
   let theme =
     themeSelector !== false ? CombinedDarkTheme : CombinedDefaultTheme;
 
-  const checkUser = [null, undefined];
-  const isLoginUser = checkUser.includes(user);
+  // const checkUser = [null, undefined];
+  // const isLoginUser = checkUser.includes(user);
   const {email, uid} = getUserData;
 
   return (
@@ -97,18 +97,21 @@ const MainNavigation = () => {
     //     // <Stack.Screen name="Bottom Navi" component={HomeScreen} />
     //     <BottomNavi />
     //   )}
-    // </NavigationContainer> */}
-    <NavigationContainer>
+    // </NavigationContainer> */} 
+    <NavigationContainer theme={theme}>
       <Stack.Navigator
         initialRouteName="loginScreen"
         screenOptions={{headerShown: false, animation: 'fade_from_bottom'}}>
         {uid === undefined ? (
-          <Stack.Screen name="loginScreen" component={LoginStack} />
+          <Stack.Group>
+            <Stack.Screen name="loginScreen" component={LoginStack} />
+          </Stack.Group>
         ) : (
-          <>
+          <Stack.Group>
             <Stack.Screen name="main" component={BottomNavi} />
             <Stack.Screen name="Chat Detail" component={ChatDetailScreen} />
-          </>
+            <Stack.Screen name="Settings" component={SettingScreen} />
+          </Stack.Group>
         )}
       </Stack.Navigator>
     </NavigationContainer>

@@ -19,6 +19,9 @@ export const userSlice = createSlice({
     //   console.log('action', action);
     //   return {...state, isThemeDark: action.payload};
     // },
+    chatToRedux: (state: any, action) => {
+      state.value = [...state.value, action.payload];
+    },
     toggleOn: (state = initialState) => {
       state.isThemeDark = true;
     },
@@ -35,7 +38,7 @@ export const userSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const {toggleOn, toggleOff, update_user, remove_user} =
+export const {toggleOn, toggleOff, update_user, remove_user, chatToRedux} =
   userSlice.actions;
 
 export default userSlice.reducer;

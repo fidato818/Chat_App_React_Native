@@ -1,6 +1,6 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import HomeScreen from '../../Screens/Home';
-import ChatScreen from '../../Screens/Chat';
+import HomeScreen from '../../Screens/Chat';
+import ChatScreen from '../../Screens/Home';
 import ChatDetailScreen from '../../Screens/ChatDetails';
 import SettingScreen from '../../Screens/Settings';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -10,9 +10,14 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const HomeStack = () => {
   return (
-    <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Navigator
+      screenOptions={{
+        // headerStyle: {backgroundColor: 'papayawhip'},
+        headerShown: false,
+        animation: 'fade_from_bottom',
+      }}>
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Settings" component={SettingScreen} />
+ 
     </Stack.Navigator>
   );
 };
@@ -37,12 +42,16 @@ function BottomNavi() {
         name="Chat"
         component={HomeStack}
       />
-      <Tab.Screen  options={{
-      tabBarLabel: 'Chat',
-      tabBarIcon: ({ color, size }) => (
-        <Ionicons name="telescope-sharp" color={color} size={size} />
-      ),
-    }} name="Users" component={ChatStack} />
+      <Tab.Screen
+        options={{
+          tabBarLabel: 'Chat',
+          tabBarIcon: ({color, size}) => (
+            <Ionicons name="telescope-sharp" color={color} size={size} />
+          ),
+        }}
+        name="Users"
+        component={ChatStack}
+      />
     </Tab.Navigator>
   );
 }
