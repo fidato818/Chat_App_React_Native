@@ -1,9 +1,18 @@
 import {onValue} from '@react-native-firebase/database';
 import {useSetState} from 'ahooks';
-import React, {useEffect} from 'react';
-import {ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
-import {Appbar} from 'react-native-paper';
-import {ref} from 'yup';
+import React, {useEffect, useRef} from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  Modal,
+  Pressable,
+  Alert,
+} from 'react-native';
+import {Appbar, IconButton, Portal} from 'react-native-paper';
+
 import database from '@react-native-firebase/database';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,20 +22,73 @@ import {useSelector} from 'react-redux';
 import moment from 'moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
+// import storage from '@react-native-firebase/storage';
 const ChatDetails = ({route}: {route: any}) => {
+  const scrollViewRef = useRef();
   const getUserData = useSelector((state: any) => state.user);
   const {email, uid} = getUserData;
   const {chatRoomId, userEmail, otherUserId} = route.params;
 
-  const [state, setState] = useSetState({
+  const [state, setState] = useSetState<any>({
     toggleLogin: false,
     chatArr: [],
     messageArr: [],
     write_txt: '',
+    isModalVisible: false,
   });
   useEffect(() => {
     listenForMessages(chatRoomId);
   }, [setState]);
+
+  const openCameraPicker = () => {
+    let options: any = {
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    launchCamera(options, response => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        Alert.alert(response.customButton);
+      } else {
+        const source = {uri: response.uri};
+        console.log('response', JSON.stringify(response));
+        setState({
+          filePath: response,
+          fileData: response.data,
+          fileUri: response.uri,
+        });
+      }
+    });
+  };
+  const openImagePicker = () => {
+    const options: any = {
+      mediaType: 'photo',
+      includeBase64: false,
+      maxHeight: 2000,
+      maxWidth: 2000,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('Image picker error: ', response.error);
+      } else {
+        let imageUri = response.uri || response.assets?.[0]?.uri;
+        // setSelectedImage(imageUri);
+        console.log('imageUri', imageUri);
+      }
+    });
+  };
 
   const listenForMessages = (chatRoomId: any) => {
     // const { chatRoomId } = state
@@ -98,7 +160,14 @@ const ChatDetails = ({route}: {route: any}) => {
       <Text style={{textAlign: 'center'}}>Current User: {email}</Text>
       <View style={{paddingBottom: 140}}>
         <SafeAreaView>
-          <ScrollView>
+          <ScrollView
+            ref={scrollViewRef}
+            onContentSizeChange={() => {
+              scrollViewRef.current?.scrollToEnd();
+            }}
+            onScroll={() => console.log('scroll')}
+            onScrollBeginDrag={() => console.log('begin')}
+            onScrollEndDrag={() => state.messageArr.length - 1}>
             {state.messageArr.map((e: any, i: number) => {
               // console.log('e', e);
               return (
@@ -112,7 +181,8 @@ const ChatDetails = ({route}: {route: any}) => {
                         marginHorizontal: 8,
                         marginVertical: 8,
                         alignSelf: 'flex-end',
-                        borderRadius: 10,   padding: 5,
+                        borderRadius: 10,
+                        padding: 5,
                       }}>
                       <Text
                         style={{color: '#fff', paddingLeft: 8, fontSize: 15}}>
@@ -216,7 +286,8 @@ const ChatDetails = ({route}: {route: any}) => {
             size={24}
             color="black"
             // onPress={() => _pickDocument()}
-            onPress={() => console.log('asd')}
+            // onPress={() => openImagePicker()}
+            onPress={() => setState({isModalVisible: true})}
           />
           <Ionicons
             style={styles.sendIcon}
@@ -228,6 +299,96 @@ const ChatDetails = ({route}: {route: any}) => {
           />
         </View>
       </View>
+
+      <Modal
+        // animationType="slide"
+        animationType="fade"
+        transparent={true}
+        visible={state.isModalVisible}
+        onRequestClose={() => {
+          // Alert.alert('Modal has been closed.');
+          setState({isModalVisible: false});
+        }}>
+        <View
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            height: '100%',
+            justifyContent: 'center',
+          }}>
+          <View>
+            <View
+              style={{
+                alignSelf: 'flex-end',
+                top: 60,
+                // backgroundColor: 'red',
+                right: 20,
+                zIndex: 1000,
+              }}>
+              <IconButton
+                icon="close"
+                // iconColor={MD3Colors.error50}
+                color="black"
+                size={20}
+                onPress={() => setState({isModalVisible: false})}
+              />
+            </View>
+            <View style={styles.modalView}>
+              {/* <Text style={styles.modalText}>Hello World!</Text> */}
+              {/* <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setState({isModalVisible: false})}>
+                <Text style={styles.textStyle}>Hide Modal</Text>
+              </Pressable> */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  alignSelf: 'center',
+                }}>
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginRight: 10,
+                  }}>
+                  <View style={{backgroundColor: '#0d7909', borderRadius: 50}}>
+                    <IconButton
+                      icon="camera"
+                      // iconColor={MD3Colors.error50}
+                      color="#fff"
+                      size={35}
+                      onPress={() => openCameraPicker()}
+                    />
+                  </View>
+                  <Text style={{marginTop: 10}}>Camera</Text>
+                </View>
+                <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                  <View style={{backgroundColor: '#790964', borderRadius: 50}}>
+                    <IconButton
+                      icon="image-multiple"
+                      // iconColor={MD3Colors.error50}
+                      color="#fff"
+                      size={35}
+                      onPress={() => openImagePicker()}
+                    />
+                  </View>
+                  <Text style={{marginTop: 10}}>Gallery</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        {/* <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Hello World!</Text>
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setState({isModalVisible: false})}>
+              <Text style={styles.textStyle}>Hide Modal</Text>
+            </Pressable>
+          </View>
+        </View> */}
+      </Modal>
     </View>
   );
 };
@@ -278,5 +439,45 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
     flexDirection: 'row',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 50,
+    // alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });

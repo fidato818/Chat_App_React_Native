@@ -205,7 +205,7 @@ const HomeScreen = () => {
         // setState({ chatRoomId })
       });
   };
- 
+  
   const alreadyExistChat = (
     currentId: any,
     otherUserId: any,
