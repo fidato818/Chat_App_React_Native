@@ -291,7 +291,7 @@ const HomeScreen = () => {
                     <Card.Title
                       title={e.email}
                       subtitle={e.write_txt}
-                      left={props => <Avatar.Icon {...props} icon="folder" />}
+                      // left={props => <Avatar.Icon {...props} icon="folder" />}
                       right={props => (
                         <IconButton
                           {...props}

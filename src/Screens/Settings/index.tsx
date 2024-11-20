@@ -71,9 +71,9 @@ const SettingScreen = () => {
             right={props => (
               <TouchableOpacity onPress={() => togglTheme()}>
                 <Switch
-                  trackColor={{false: '#767577', true: '#81b0ff'}}
-                  thumbColor={themeSelector ? '#f5dd4b' : '#f4f3f4'}
-                  ios_backgroundColor="#3e3e3e"
+                  // trackColor={{false: '#767577', true: '#81b0ff'}}
+                  // thumbColor={themeSelector ? '#f5dd4b' : '#f4f3f4'}
+                  // ios_backgroundColor="#3e3e3e"
                   onValueChange={() => togglTheme()}
                   value={themeSelector}
                 />

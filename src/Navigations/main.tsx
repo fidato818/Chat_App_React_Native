@@ -10,23 +10,27 @@ import HomeScreen from '../Screens/Chat';
 import ChatScreen from '../Screens/Home';
 import ChatDetailScreen from '../Screens/ChatDetails';
 import SettingScreen from '../Screens/Settings';
-
+import {DefaultTheme, Provider as PaperProvider} from 'react-native-paper';
+import BootSplash from 'react-native-bootsplash';
 //Auth
 import SignupScr from '../Screens/Auth/Signup';
 import LoginScr from '../Screens/Auth/Login';
 import {
   DarkTheme as PaperDarkTheme,
   DefaultTheme as PaperDefaultTheme,
+  ThemeProvider,
 } from 'react-native-paper';
+
 import merge from 'deepmerge';
 import {useSelector} from 'react-redux';
-import {useSetState} from 'ahooks';
+
 import auth from '@react-native-firebase/auth';
 import BottomNavi from './BottomNavi';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
 const CombinedDefaultTheme = merge(PaperDefaultTheme, NavigationDefaultTheme);
 const CombinedDarkTheme = merge(PaperDarkTheme, NavigationDarkTheme);
 const LoginStack = () => {
@@ -44,6 +48,15 @@ const LoginStack = () => {
     </Stack.Navigator>
   );
 };
+// const theme = {
+//   ...DefaultTheme,
+//   roundness: 2,
+//   colors: {
+//     ...DefaultTheme.colors,
+//     primary: '#3498db',
+//     accent: '#f1c40f',
+//   },
+// };
 
 const MainNavigation = () => {
   const themeSelector = useSelector((state: any) => state.isThemeDark);
@@ -97,24 +110,32 @@ const MainNavigation = () => {
     //     // <Stack.Screen name="Bottom Navi" component={HomeScreen} />
     //     <BottomNavi />
     //   )}
-    // </NavigationContainer> */} 
-    <NavigationContainer theme={theme}>
-      <Stack.Navigator
-        initialRouteName="loginScreen"
-        screenOptions={{headerShown: false, animation: 'fade_from_bottom'}}>
-        {uid === undefined ? (
-          <Stack.Group>
-            <Stack.Screen name="loginScreen" component={LoginStack} />
-          </Stack.Group>
-        ) : (
-          <Stack.Group>
-            <Stack.Screen name="main" component={BottomNavi} />
-            <Stack.Screen name="Chat Detail" component={ChatDetailScreen} />
-            <Stack.Screen name="Settings" component={SettingScreen} />
-          </Stack.Group>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    // </NavigationContainer> */}
+
+    <PaperProvider theme={theme}>
+      <NavigationContainer
+        theme={theme}
+        // onReady={() => BootSplash.hide({fade: true})}>
+        onReady={() => BootSplash.hide()}>
+        <Stack.Navigator
+          initialRouteName="loginScreen"
+          screenOptions={{headerShown: false, animation: 'fade_from_bottom'}}>
+          {uid === undefined ? (
+            <Stack.Group>
+              <Stack.Screen name="loginScreen" component={LoginStack} />
+            </Stack.Group>
+          ) : (
+            <>
+              <Stack.Group>
+                <Stack.Screen name="main" component={BottomNavi} />
+                <Stack.Screen name="Chat Detail" component={ChatDetailScreen} />
+                <Stack.Screen name="Settings" component={SettingScreen} />
+              </Stack.Group>
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </PaperProvider>
   );
 };
 

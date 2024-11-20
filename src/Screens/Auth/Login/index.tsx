@@ -1,13 +1,25 @@
 import {useSetState} from 'ahooks';
 import React, {useEffect} from 'react';
-import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+} from 'react-native';
 import {Formik} from 'formik';
-import {HelperText, TextInput, Button} from 'react-native-paper';
+import {
+  HelperText,
+  TextInput,
+  Button,
+  IconButton,
+  Text,
+} from 'react-native-paper';
 import * as Yup from 'yup';
 import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
-import {update_user} from '../../../Store/userReducers';
+import {update_user} from '../../../Store/userReducers'; 
 const SignupSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Required'),
   password: Yup.string()
@@ -68,88 +80,107 @@ const Login = () => {
       });
   };
   return (
-    <View style={{margin: 10}}>
-      <Formik
-        validationSchema={SignupSchema}
-        initialValues={{email: '', password: ''}}
-        onSubmit={values =>
-          //   setState({
-          //     data: values,
-          //   })
-          signinhandler(values)
-        }>
-        {({
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          values,
-          errors,
-          isValid,
-        }) => (
-          <>
-            <TextInput
-              label="Email"
-              name="email"
-              placeholder="Email Address"
-              style={styles.textInput}
-              onChangeText={handleChange('email')}
-              onBlur={handleBlur('email')}
-              value={values.email}
-              keyboardType="email-address"
-            />
+    <View>
+      <ScrollView>
+        <IconButton
+          icon="chat"
+          size={160}
+          style={{
+            // flex: 1,
+            marginTop: '20%',
+            // width: '100%',
+            // height: '25%',
+            // resizeMode: 'cover',
+            // aspectRatio: 1, // Your aspect ratio
+            alignSelf: 'center',
+            // fontSize: 300
+          }}
+          // source={require('@/assets/logo/logo.png')}
+        />
+        <View style={{margin: 10}}>
+          <Formik
+            validationSchema={SignupSchema}
+            initialValues={{email: '', password: ''}}
+            onSubmit={values =>
+              //   setState({
+              //     data: values,
+              //   })
+              signinhandler(values)
+            }>
+            {({
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              values,
+              errors,
+              isValid,
+            }) => (
+              <>
+                <TextInput
+                  label="Email"
+                  name="email"
+                  placeholder="Email Address"
+                  style={styles.textInput}
+                  onChangeText={handleChange('email')}
+                  onBlur={handleBlur('email')}
+                  value={values.email}
+                  keyboardType="email-address"
+                />
 
-            {errors.email && (
-              <HelperText visible={errors.email} style={{color: 'red'}}>
-                {errors.email}
-              </HelperText>
+                {errors.email && (
+                  <HelperText visible={errors.email} style={{color: 'red'}}>
+                    {errors.email}
+                  </HelperText>
+                )}
+                <TextInput
+                  label="Password"
+                  name="password"
+                  placeholder="Password"
+                  style={styles.textInput}
+                  onChangeText={handleChange('password')}
+                  onBlur={handleBlur('password')}
+                  value={values.password}
+                  secureTextEntry
+                />
+
+                <HelperText visible={errors.password} style={{color: 'red'}}>
+                  {errors.password}
+                </HelperText>
+
+                {state.isLoading ? (
+                  <Button
+                    loading
+                    //   icon="camera"
+                    mode="contained"
+                    disabled
+                    onPress={handleSubmit}>
+                    Signin
+                  </Button>
+                ) : (
+                  <Button
+                    //   loading
+                    //   icon="camera"
+                    mode="contained"
+                    disabled={!isValid}
+                    onPress={handleSubmit}>
+                    Signin
+                  </Button>
+                )}
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Signup' as never)}>
+                  <Text>Don't have an account! Signup</Text>
+                </TouchableOpacity>
+                {/* <TouchableOpacity
+                  onPress={() => navigation.navigate('Home' as never)}>
+                  <Text>Don't have an account! Signup</Text>
+                </TouchableOpacity> */}
+              </>
             )}
-            <TextInput
-              label="Password"
-              name="password"
-              placeholder="Password"
-              style={styles.textInput}
-              onChangeText={handleChange('password')}
-              onBlur={handleBlur('password')}
-              value={values.password}
-              secureTextEntry
-            />
-
-            <HelperText visible={errors.password} style={{color: 'red'}}>
-              {errors.password}
-            </HelperText>
-
-            {state.isLoading ? (
-              <Button
-                loading
-                //   icon="camera"
-                mode="contained"
-                disabled
-                onPress={handleSubmit}>
-                Signin
-              </Button>
-            ) : (
-              <Button
-                //   loading
-                //   icon="camera"
-                mode="contained"
-                disabled={!isValid}
-                onPress={handleSubmit}>
-                Signin 
-              </Button>
-            )}
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Signup' as never)}>
-              <Text>Don't have an account! Signup</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Home' as never)}>
-              <Text>Don't have an account! Signup</Text>
-            </TouchableOpacity>
-          </>  
-        )}
-      </Formik>
+          </Formik>
+        </View>
+      </ScrollView>
     </View>
-  ); 
+  );
 };
 
 const styles = StyleSheet.create({

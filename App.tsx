@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
@@ -27,7 +27,17 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import MainNavigation from './src/Navigations/main';
-import {Provider as PaperProvider} from 'react-native-paper';
+import {DefaultTheme, Provider as PaperProvider} from 'react-native-paper';
+
+const theme = {
+  ...DefaultTheme,
+  roundness: 2,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#3498db',
+    accent: '#f1c40f',
+  },
+};
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
@@ -67,13 +77,14 @@ const App = () => {
 
   return (
     // <SafeAreaView style={backgroundStyle}>
-    <PaperProvider>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <MainNavigation />
-        </PersistGate>
-      </Provider>
-    </PaperProvider>
+    // <PaperProvider theme={theme}>
+    // <PaperProvider >
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <MainNavigation />
+      </PersistGate>
+    </Provider>
+    // </PaperProvider>
     // {/* <StatusBar
     //   barStyle={isDarkMode ? 'light-content' : 'dark-content'}
     //   backgroundColor={backgroundStyle.backgroundColor}

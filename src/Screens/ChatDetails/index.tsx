@@ -10,8 +10,19 @@ import {
   Modal,
   Pressable,
   Alert,
+  Platform,
+  TouchableOpacity,
+  Button,
+  Image,
 } from 'react-native';
-import {Appbar, IconButton, Portal} from 'react-native-paper';
+import {
+  Colors,
+  Appbar,
+  IconButton,
+  Portal,
+  ProgressBar,
+} from 'react-native-paper';
+import storage from '@react-native-firebase/storage';
 
 import database from '@react-native-firebase/database';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -23,6 +34,7 @@ import moment from 'moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
+import notifee from '@notifee/react-native';
 // import storage from '@react-native-firebase/storage';
 const ChatDetails = ({route}: {route: any}) => {
   const scrollViewRef = useRef();
@@ -36,38 +48,48 @@ const ChatDetails = ({route}: {route: any}) => {
     messageArr: [],
     write_txt: '',
     isModalVisible: false,
+    selectedImage: null,
   });
   useEffect(() => {
     listenForMessages(chatRoomId);
   }, [setState]);
 
-  const openCameraPicker = () => {
-    let options: any = {
-      storageOptions: {
-        skipBackup: true,
-        path: 'images',
-      },
-    };
-    launchCamera(options, response => {
-      console.log('Response = ', response);
+  const onDisplayNotification = async () => {
+    // Request permissions (required for iOS)
+    await notifee.requestPermission();
 
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
-        Alert.alert(response.customButton);
-      } else {
-        const source = {uri: response.uri};
-        console.log('response', JSON.stringify(response));
-        setState({
-          filePath: response,
-          fileData: response.data,
-          fileUri: response.uri,
-        });
-      }
+    // Create a channel (required for Android)
+    const channelId = await notifee.createChannel({
+      id: 'default',
+      name: 'Default Channel',
     });
+
+    // Display a notification
+    await notifee.displayNotification({
+      title: 'New Notification Successfully',
+      body: 'Main body content of the notification',
+      android: {
+        channelId,
+        // smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
+        // pressAction is needed if you want the notification to open the app when pressed
+        pressAction: {
+          id: 'default',
+        },
+      },
+    });
+  };
+
+  const openCameraPicker = async (isCamera: boolean) => {
+    const options: any = {
+      mediaType: isCamera ? 'photo' : 'video',
+    };
+
+    try {
+      const response = await launchCamera(options);
+      console.log('pickedFile', response);
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
   const openImagePicker = () => {
     const options: any = {
@@ -77,7 +99,7 @@ const ChatDetails = ({route}: {route: any}) => {
       maxWidth: 2000,
     };
 
-    launchImageLibrary(options, response => {
+    launchImageLibrary(options, (response: any) => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.error) {
@@ -86,7 +108,90 @@ const ChatDetails = ({route}: {route: any}) => {
         let imageUri = response.uri || response.assets?.[0]?.uri;
         // setSelectedImage(imageUri);
         console.log('imageUri', imageUri);
+        // uploadImage(imageUri);
+        const source = {uri: response.uri};
+        console.log(source);
+
+        setState({
+          selectedImage: imageUri,
+        });
       }
+    });
+  };
+
+  const uploadImage = async (senderId: any) => {
+    const {selectedImage}: any = state;
+    const filename = selectedImage.substring(
+      selectedImage.lastIndexOf('/') + 1,
+    );
+    const uploadUri =
+      Platform.OS === 'ios'
+        ? selectedImage.replace('file://', '')
+        : selectedImage;
+
+    setState({
+      uploadingImage: true,
+      transferred: 0,
+    });
+
+    const task = storage().ref(`chatImages/${filename}`).putFile(uploadUri);
+
+    // set progress state
+    // Create a reference to the file we want to download
+
+    task.on('state_changed', (snapshot: any) => {
+      console.log('snapshot', snapshot);
+      setState({
+        transferred:
+          Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000,
+      });
+      // snapshot.getDownloadURL().then((url: any) => {
+      //   console.log('url', url);
+      //   // Insert url into an <img> tag to "download"
+      // });
+    });
+    try {
+      await task;
+
+      // await imageRef.putFile(loaclPath, {contentType: 'image/jpg'});
+      const imageRef = storage().ref(`chatImages/${filename}`);
+      // await imageRef.putFile(uploadUri, {contentType: 'image/jpg'});
+      await imageRef.putFile(uploadUri);
+      const url = await imageRef.getDownloadURL();
+      // console.log(url);
+
+      const timestamp = Date.now();
+
+      const newPostKey: any = database().ref('messages').push().key;
+      database()
+        .ref(`Chat_Messages/${chatRoomId}/messages/${newPostKey}`)
+        .update({
+          senderId,
+          url,
+          timestamp,
+          newPostKey,
+        })
+        .then(() => {
+          console.log('Image set Success.');
+
+          // AsyncStorage.setItem('Last_Msg', JSON.stringify(write_txt));
+
+          // listenForMessages();
+        });
+    } catch (e) {
+      console.error('e', e);
+    }
+
+    setState({
+      uploadingImage: false,
+    });
+    Alert.alert(
+      'Photo uploaded!',
+      'Your photo has been uploaded to Firebase Cloud Storage!',
+    );
+
+    setState({
+      selectedImage: null,
     });
   };
 
@@ -158,6 +263,7 @@ const ChatDetails = ({route}: {route: any}) => {
         />
       </Appbar.Header>
       <Text style={{textAlign: 'center'}}>Current User: {email}</Text>
+
       <View style={{paddingBottom: 140}}>
         <SafeAreaView>
           <ScrollView
@@ -165,14 +271,14 @@ const ChatDetails = ({route}: {route: any}) => {
             onContentSizeChange={() => {
               scrollViewRef.current?.scrollToEnd();
             }}
-            onScroll={() => console.log('scroll')}
-            onScrollBeginDrag={() => console.log('begin')}
-            onScrollEndDrag={() => state.messageArr.length - 1}>
+            // onScroll={() => console.log('scroll')}
+            // onScrollBeginDrag={() => console.log('begin')}
+            // onScrollEndDrag={() => state.messageArr.length - 1}
+          >
             {state.messageArr.map((e: any, i: number) => {
-              // console.log('e', e);
               return (
                 <View>
-                  {e.senderId === uid ? (
+                  {uid === e.senderId ? (
                     <View
                       key={e.newPostKey}
                       style={{
@@ -184,14 +290,60 @@ const ChatDetails = ({route}: {route: any}) => {
                         borderRadius: 10,
                         padding: 5,
                       }}>
-                      <Text
-                        style={{color: '#fff', paddingLeft: 8, fontSize: 15}}>
-                        {e.write_txt}
-                      </Text>
-                      <Text
-                        style={{color: '#fff', paddingLeft: 8, fontSize: 10}}>
-                        {moment(e.timestamp).format('HH:mm')}
-                      </Text>
+                      {e.write_txt ? (
+                        <>
+                          <Text
+                            style={{
+                              color: '#fff',
+                              paddingLeft: 8,
+                              fontSize: 15,
+                            }}>
+                            {e.write_txt}
+                          </Text>
+                          <Text
+                            style={{
+                              color: '#fff',
+                              paddingLeft: 8,
+                              fontSize: 10,
+                            }}>
+                            {moment(e.timestamp).format('HH:mm')}
+                          </Text>
+                        </>
+                      ) : (
+                        <View style={{padding: 10, alignSelf: 'center'}}>
+                          <Pressable
+                            onLongPress={() =>
+                              Alert.alert(
+                                'Alert Title',
+                                'My Alert Msg',
+                                [
+                                  {
+                                    text: 'Cancel',
+                                    onPress: () =>
+                                      Alert.alert('Cancel Pressed'),
+                                    style: 'cancel',
+                                  },
+                                ],
+                                {
+                                  cancelable: true,
+                                  onDismiss: () =>
+                                    Alert.alert(
+                                      'This alert was dismissed by tapping outside of the alert dialog.',
+                                    ),
+                                },
+                              )
+                            }>
+                            <Image
+                              source={{
+                                uri: e.url,
+                              }}
+                              resizeMode="contain"
+                              resizeMethod="scale"
+                              style={{width: 200, height: 200}}
+                            />
+                          </Pressable>
+                        </View>
+                      )}
                     </View>
                   ) : (
                     <View
@@ -204,20 +356,39 @@ const ChatDetails = ({route}: {route: any}) => {
                         borderRadius: 10,
                         padding: 5,
                       }}>
-                      <Text
-                        style={{color: '#fff', paddingLeft: 8, fontSize: 15}}>
-                        {e.write_txt}
-                      </Text>
-                      <Text
-                        style={{
-                          color: '#fff',
-                          paddingRight: 8,
-                          fontSize: 10,
-                          textAlign: 'right',
-                        }}>
-                        {/* {new Date().toDateString()} */}
-                        {moment(e.timestamp).format('HH:mm')}
-                      </Text>
+                      {e.url ? (
+                        <View style={{padding: 10, alignSelf: 'center'}}>
+                          <Image
+                            source={{
+                              uri: e.url,
+                            }}
+                            resizeMode="contain"
+                            resizeMethod="scale"
+                            style={{width: 200, height: 200}}
+                          />
+                        </View>
+                      ) : (
+                        <>
+                          <Text
+                            style={{
+                              color: '#fff',
+                              paddingLeft: 8,
+                              fontSize: 15,
+                            }}>
+                            {e.write_txt}
+                          </Text>
+                          <Text
+                            style={{
+                              color: '#fff',
+                              paddingRight: 8,
+                              fontSize: 10,
+                              textAlign: 'right',
+                            }}>
+                            {/* {new Date().toDateString()} */}
+                            {moment(e.timestamp).format('HH:mm')}
+                          </Text>
+                        </>
+                      )}
                     </View>
                   )}
                 </View>
@@ -264,6 +435,7 @@ const ChatDetails = ({route}: {route: any}) => {
 
         <View style={styles.chatView}></View>
       </View>
+
       <View
         style={{
           bottom: 0,
@@ -295,6 +467,7 @@ const ChatDetails = ({route}: {route: any}) => {
             size={24}
             color="black"
             onPress={() => sendMessage(uid)}
+            // onPress={() => onDisplayNotification()}
             // onPress={() => console.log('asd')}
           />
         </View>
@@ -332,6 +505,7 @@ const ChatDetails = ({route}: {route: any}) => {
                 onPress={() => setState({isModalVisible: false})}
               />
             </View>
+
             <View style={styles.modalView}>
               {/* <Text style={styles.modalText}>Hello World!</Text> */}
               {/* <Pressable
@@ -339,13 +513,22 @@ const ChatDetails = ({route}: {route: any}) => {
                 onPress={() => setState({isModalVisible: false})}>
                 <Text style={styles.textStyle}>Hide Modal</Text>
               </Pressable> */}
+              {state.uploadingImage === true && (
+                <View>
+                  <ProgressBar
+                    progress={state.transferred}
+                    color={Colors.red800}
+                    style={{height: 8, marginBottom: 30}}
+                  />
+                </View>
+              )}
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   alignSelf: 'center',
                 }}>
-                <View
+                {/* <View
                   style={{
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -357,11 +540,12 @@ const ChatDetails = ({route}: {route: any}) => {
                       // iconColor={MD3Colors.error50}
                       color="#fff"
                       size={35}
-                      onPress={() => openCameraPicker()}
+                      // onPress={() => openCameraPicker()}
                     />
                   </View>
                   <Text style={{marginTop: 10}}>Camera</Text>
-                </View>
+                </View> */}
+
                 <View style={{justifyContent: 'center', alignItems: 'center'}}>
                   <View style={{backgroundColor: '#790964', borderRadius: 50}}>
                     <IconButton
@@ -373,6 +557,25 @@ const ChatDetails = ({route}: {route: any}) => {
                     />
                   </View>
                   <Text style={{marginTop: 10}}>Gallery</Text>
+
+                  <View style={styles.imageContainer}>
+                    {state.selectedImage !== null ? (
+                      <Image
+                        source={{
+                          uri: state.selectedImage,
+                        }}
+                        style={styles.imageBox}
+                      />
+                    ) : null}
+
+                    {state.selectedImage !== null && (
+                      <Button
+                        disabled={state.uploadingImage}
+                        title="Upload image"
+                        onPress={() => uploadImage(uid)}
+                      />
+                    )}
+                  </View>
                 </View>
               </View>
             </View>
@@ -439,6 +642,7 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
     flexDirection: 'row',
+    backgroundColor: 'white',
   },
   centeredView: {
     flex: 1,
@@ -479,5 +683,44 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: 'center',
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#bbded6',
+  },
+  selectButton: {
+    borderRadius: 5,
+    width: 150,
+    height: 50,
+    backgroundColor: '#8ac6d1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uploadButton: {
+    borderRadius: 5,
+    width: 150,
+    height: 50,
+    backgroundColor: '#ffb6b9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  imageContainer: {
+    marginTop: 30,
+    // marginBottom: 50,
+    alignItems: 'center',
+  },
+  progressBarContainer: {
+    marginTop: 20,
+  },
+  imageBox: {
+    width: 250,
+    height: 250,
   },
 });

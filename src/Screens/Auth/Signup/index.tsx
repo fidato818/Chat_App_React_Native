@@ -1,8 +1,15 @@
 import {useSetState} from 'ahooks';
 import React, {useEffect} from 'react';
-import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
 import {Formik} from 'formik';
-import {HelperText, Button, TextInput, Snackbar} from 'react-native-paper';
+import {
+  HelperText,
+  Button,
+  TextInput,
+  Snackbar,
+  IconButton,
+  Text,
+} from 'react-native-paper';
 import * as Yup from 'yup';
 import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
@@ -87,123 +94,140 @@ const Signup = () => {
       });
   };
   return (
-    <View style={{margin: 10}}>
-      <Formik
-        validationSchema={SignupSchema}
-        initialValues={{
-          email: state.email,
-          password: state.password,
-          fullName: state.fullName,
+    <ScrollView>
+      <IconButton
+        icon="chat"
+        size={160}
+        style={{
+          // flex: 1,
+          marginTop: '20%',
+          // width: '100%',
+          // height: '25%',
+          // resizeMode: 'cover',
+          // aspectRatio: 1, // Your aspect ratio
+          alignSelf: 'center',
+          // fontSize: 300
         }}
-        onSubmit={values =>
-          //   setState({
-          //     data: values,
-          //   })
-          signuphandler(values)
-        }>
-        {({
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          values,
-          errors,
-          isValid,
-        }) => (
-          <>
-            <TextInput
-              label="Full Name"
-              name="fullName"
-              placeholder="Full Name"
-              style={styles.textInput}
-              onChangeText={handleChange('fullName')}
-              onBlur={handleBlur('fullName')}
-              value={values.fullName}
-              keyboardType="default"
-              disabled={state.isLoading}
-            />
-            {errors.fullName && (
-              <HelperText visible={errors.fullName} style={{color: 'red'}}>
-                {errors.fullName}
+        // source={require('@/assets/logo/logo.png')}
+      />
+      <View style={{margin: 10}}>
+        <Formik
+          validationSchema={SignupSchema}
+          initialValues={{
+            email: state.email,
+            password: state.password,
+            fullName: state.fullName,
+          }}
+          onSubmit={values =>
+            //   setState({
+            //     data: values,
+            //   })
+            signuphandler(values)
+          }>
+          {({
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            values,
+            errors,
+            isValid,
+          }) => (
+            <>
+              <TextInput
+                label="Full Name"
+                name="fullName"
+                placeholder="Full Name"
+                style={styles.textInput}
+                onChangeText={handleChange('fullName')}
+                onBlur={handleBlur('fullName')}
+                value={values.fullName}
+                keyboardType="default"
+                disabled={state.isLoading}
+              />
+              {errors.fullName && (
+                <HelperText visible={errors.fullName} style={{color: 'red'}}>
+                  {errors.fullName}
+                </HelperText>
+              )}
+
+              <TextInput
+                label="Email"
+                name="email"
+                placeholder="Email Address"
+                style={styles.textInput}
+                onChangeText={handleChange('email')}
+                onBlur={handleBlur('email')}
+                value={values.email}
+                keyboardType="email-address"
+                disabled={state.isLoading}
+              />
+
+              {errors.email && (
+                <HelperText visible={errors.email} style={{color: 'red'}}>
+                  {errors.email}
+                </HelperText>
+              )}
+              <TextInput
+                label="Password"
+                name="password"
+                placeholder="Password"
+                style={styles.textInput}
+                onChangeText={handleChange('password')}
+                onBlur={handleBlur('password')}
+                value={values.password}
+                secureTextEntry
+                disabled={state.isLoading}
+              />
+
+              <HelperText visible={errors.password} style={{color: 'red'}}>
+                {errors.password}
               </HelperText>
-            )}
-
-            <TextInput
-              label="Email"
-              name="email"
-              placeholder="Email Address"
-              style={styles.textInput}
-              onChangeText={handleChange('email')}
-              onBlur={handleBlur('email')}
-              value={values.email}
-              keyboardType="email-address"
-              disabled={state.isLoading}
-            />
-
-            {errors.email && (
-              <HelperText visible={errors.email} style={{color: 'red'}}>
-                {errors.email}
-              </HelperText>
-            )}
-            <TextInput
-              label="Password"
-              name="password"
-              placeholder="Password"
-              style={styles.textInput}
-              onChangeText={handleChange('password')}
-              onBlur={handleBlur('password')}
-              value={values.password}
-              secureTextEntry
-              disabled={state.isLoading}
-            />
-
-            <HelperText visible={errors.password} style={{color: 'red'}}>
-              {errors.password}
-            </HelperText>
-            {state.isLoading ? (
-              <Button
-                loading
-                //   icon="camera"
-                mode="contained"
-                disabled
-                onPress={handleSubmit}>
-                Signup
-              </Button>
-            ) : (
-              <Button
-                //   loading
-                //   icon="camera"
-                mode="contained"
-                disabled={!isValid}
-                onPress={handleSubmit}>
-                Signup
-              </Button>
-            )}
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Login' as never)}>
-              <Text>Already have an account! Signin</Text>
-            </TouchableOpacity>
-            {/* <Button  onPress={handleSubmit} title="LOGIN" disabled={!isValid} /> */}
-          </>
-        )}
-      </Formik>
-      <Snackbar
-        duration={1500}
-        visible={state.visibleSnack}
-        onDismiss={() =>
-          setState({
-            visibleSnack: false,
-          })
-        }
-        // action={{
-        //   label: 'Undo',
-        //   onPress: () => {
-        //     // Do something
-        //   },
-        // }}
-      >
-        Hey there! I'm a Snackbar.
-      </Snackbar>
-    </View>
+              {state.isLoading ? (
+                <Button
+                  loading
+                  //   icon="camera"
+                  mode="contained"
+                  disabled
+                  onPress={handleSubmit}>
+                  Signup
+                </Button>
+              ) : (
+                <Button
+                  //   loading
+                  //   icon="camera"
+                  mode="contained"
+                  disabled={!isValid}
+                  onPress={handleSubmit}>
+                  Signup
+                </Button>
+              )}
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Login' as never)}>
+                <Text>Already have an account! Signin</Text>
+              </TouchableOpacity>
+              {/* <Button  onPress={handleSubmit} title="LOGIN" disabled={!isValid} /> */}
+            </>
+          )}
+        </Formik>
+        <Snackbar
+          duration={1500}
+          visible={state.visibleSnack}
+          onDismiss={() =>
+            setState({
+              visibleSnack: false,
+            })
+          }
+          // action={{
+          //   label: 'Undo',
+          //   onPress: () => {
+          //     // Do something
+          //   },
+          // }}
+        >
+          Hey there! I'm a Snackbar.
+        </Snackbar>
+      </View>
+    </ScrollView>
   );
 };
 

@@ -179,11 +179,12 @@ const Chat = () => {
                   <Card.Title
                     title={e.email}
                     // subtitle="Card Subtitle"
-                    left={props => <Avatar.Icon {...props} icon="folder" />}
+                    // left={props => <Avatar.Icon {...props} icon="folder" />}
                     right={props => (
                       <IconButton
                         {...props}
                         icon="dots-vertical"
+                        // icon=""
                         onPress={() => {}}
                       />
                     )}
