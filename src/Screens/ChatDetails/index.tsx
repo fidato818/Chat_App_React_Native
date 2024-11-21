@@ -21,6 +21,8 @@ import {
   IconButton,
   Portal,
   ProgressBar,
+  Divider,
+  Menu,
 } from 'react-native-paper';
 import storage from '@react-native-firebase/storage';
 
@@ -35,13 +37,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 import notifee from '@notifee/react-native';
+import {useNavigation} from '@react-navigation/native';
 // import storage from '@react-native-firebase/storage';
 const ChatDetails = ({route}: {route: any}) => {
+  const navigation = useNavigation();
   const scrollViewRef = useRef();
   const getUserData = useSelector((state: any) => state.user);
   const {email, uid} = getUserData;
   const {chatRoomId, userEmail, otherUserId} = route.params;
+  const [visible, setVisible] = React.useState(false);
 
+  const openMenu = () => setVisible(true);
+
+  const closeMenu = () => setVisible(false);
+  const _handleMore = () => console.log('Shown more');
   const [state, setState] = useSetState<any>({
     toggleLogin: false,
     chatArr: [],
@@ -120,7 +129,7 @@ const ChatDetails = ({route}: {route: any}) => {
   };
 
   const uploadImage = async (senderId: any) => {
-    const {selectedImage}: any = state;
+    const {selectedImage, imgTxt}: any = state;
     const filename = selectedImage.substring(
       selectedImage.lastIndexOf('/') + 1,
     );
@@ -170,6 +179,7 @@ const ChatDetails = ({route}: {route: any}) => {
           url,
           timestamp,
           newPostKey,
+          imgTxt,
         })
         .then(() => {
           console.log('Image set Success.');
@@ -192,6 +202,7 @@ const ChatDetails = ({route}: {route: any}) => {
 
     setState({
       selectedImage: null,
+      isModalVisible: false,
     });
   };
 
@@ -247,6 +258,38 @@ const ChatDetails = ({route}: {route: any}) => {
         setState({write_txt: ''});
       });
   };
+
+  const imageDelete = (filename: string, newPostKey: string, senderId: any) => {
+    database()
+      .ref(`Chat_Messages/${chatRoomId}/messages/${newPostKey}`)
+      .set({
+        write_txt: 'you deleted this message',
+        senderId,
+        updateAt: Date.now(),
+      })
+      // .remove()
+      .then(() => {
+        // Create a reference to the file to delete
+        const imageStr = filename.substr(
+          filename.indexOf('%2F') + 3,
+          filename.indexOf('?') - (filename.indexOf('%2F') + 3),
+        );
+        var desertRef = storage().ref(`chatImages/${imageStr}`);
+        console.log('filename', imageStr);
+        // Delete the file
+        desertRef
+          .delete()
+          .then(() => {
+            database()
+              .ref(`Chat_Messages/${chatRoomId}/messages/${newPostKey}`)
+              .update({write_txt: 'you deleted this message', senderId});
+            // File deleted successfully
+          })
+          .catch(error => {
+            // Uh-oh, an error occurred!
+          });
+      });
+  };
   return (
     <View style={styles.Container}>
       <Appbar.Header
@@ -257,11 +300,37 @@ const ChatDetails = ({route}: {route: any}) => {
       //   },
       // }}
       >
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content
           tvParallaxProperties
           title={userEmail ?? 'Chat Detail'}
         />
+        <Menu
+          visible={visible}
+          onDismiss={() => setVisible(false)}
+          anchor={
+            <Appbar.Action
+              icon="dots-vertical"
+              onPress={() => setVisible(true)}
+              color="#fff"
+            />
+          }>
+          <Menu.Item
+            onPress={() => {
+              setVisible(false);
+            }}
+            title="Edit"
+          />
+          <Divider />
+          <Menu.Item
+            onPress={() => {
+              setVisible(false);
+            }}
+            title="Delete"
+          />
+        </Menu>
       </Appbar.Header>
+
       <Text style={{textAlign: 'center'}}>Current User: {email}</Text>
 
       <View style={{paddingBottom: 140}}>
@@ -282,7 +351,10 @@ const ChatDetails = ({route}: {route: any}) => {
                     <View
                       key={e.newPostKey}
                       style={{
-                        backgroundColor: 'green',
+                        backgroundColor:
+                          e.write_txt === 'you deleted this message'
+                            ? '#73d5e0b0'
+                            : '#73d5e0',
                         width: 250,
                         marginHorizontal: 8,
                         marginVertical: 8,
@@ -294,34 +366,44 @@ const ChatDetails = ({route}: {route: any}) => {
                         <>
                           <Text
                             style={{
-                              color: '#fff',
+                              color: '#000',
                               paddingLeft: 8,
                               fontSize: 15,
+                              fontStyle:
+                                e.write_txt === 'you deleted this message'
+                                  ? 'italic'
+                                  : 'normal',
                             }}>
                             {e.write_txt}
                           </Text>
                           <Text
                             style={{
-                              color: '#fff',
+                              color: '#000',
                               paddingLeft: 8,
                               fontSize: 10,
+                              textAlign: 'right',
                             }}>
                             {moment(e.timestamp).format('HH:mm')}
                           </Text>
                         </>
                       ) : (
-                        <View style={{padding: 10, alignSelf: 'center'}}>
+                        <View>
                           <Pressable
                             onLongPress={() =>
                               Alert.alert(
-                                'Alert Title',
-                                'My Alert Msg',
+                                'Chat App',
+                                'Are you sure?',
                                 [
                                   {
                                     text: 'Cancel',
                                     onPress: () =>
                                       Alert.alert('Cancel Pressed'),
                                     style: 'cancel',
+                                  },
+                                  {
+                                    text: 'Ok',
+                                    onPress: () =>
+                                      imageDelete(e.url, e.newPostKey, uid),
                                   },
                                 ],
                                 {
@@ -333,14 +415,25 @@ const ChatDetails = ({route}: {route: any}) => {
                                 },
                               )
                             }>
-                            <Image
-                              source={{
-                                uri: e.url,
-                              }}
-                              resizeMode="contain"
-                              resizeMethod="scale"
-                              style={{width: 200, height: 200}}
-                            />
+                            <View style={{padding: 10, alignSelf: 'center'}}>
+                              <Image
+                                source={{
+                                  uri: e.url,
+                                }}
+                                resizeMode="contain"
+                                resizeMethod="scale"
+                                style={{width: 200, height: 200}}
+                              />
+                            </View>
+                            <Text
+                              style={{
+                                color: '#000',
+
+                                // fontSize: 10,
+                                // textAlign: 'right',
+                              }}>
+                              {e.imgTxt}
+                            </Text>
                           </Pressable>
                         </View>
                       )}
@@ -349,7 +442,10 @@ const ChatDetails = ({route}: {route: any}) => {
                     <View
                       key={e.newPostKey}
                       style={{
-                        backgroundColor: 'grey',
+                        backgroundColor:
+                          e.write_txt === 'you deleted this message'
+                            ? '#3086ddb3'
+                            : '#3086dd',
                         width: 250,
                         marginHorizontal: 8,
                         marginVertical: 8,
@@ -357,21 +453,61 @@ const ChatDetails = ({route}: {route: any}) => {
                         padding: 5,
                       }}>
                       {e.url ? (
-                        <View style={{padding: 10, alignSelf: 'center'}}>
-                          <Image
-                            source={{
-                              uri: e.url,
-                            }}
-                            resizeMode="contain"
-                            resizeMethod="scale"
-                            style={{width: 200, height: 200}}
-                          />
+                        <View>
+                          <Pressable
+                            disabled
+                            onLongPress={() =>
+                              Alert.alert(
+                                'Chat App',
+                                'Are you sure?',
+                                [
+                                  {
+                                    text: 'Cancel',
+                                    onPress: () =>
+                                      Alert.alert('Cancel Pressed'),
+                                    style: 'cancel',
+                                  },
+                                  {
+                                    text: 'Ok',
+                                    onPress: () =>
+                                      imageDelete(e.url, e.newPostKey, uid),
+                                  },
+                                ],
+                                {
+                                  cancelable: true,
+                                  onDismiss: () =>
+                                    Alert.alert(
+                                      'This alert was dismissed by tapping outside of the alert dialog.',
+                                    ),
+                                },
+                              )
+                            }>
+                            <View style={{padding: 10, alignSelf: 'center'}}>
+                              <Image
+                                source={{
+                                  uri: e.url,
+                                }}
+                                resizeMode="contain"
+                                resizeMethod="scale"
+                                style={{width: 200, height: 200}}
+                              />
+                            </View>
+                            <Text
+                              style={{
+                                color: '#000',
+
+                                // fontSize: 10,
+                                // textAlign: 'right',
+                              }}>
+                              {e.imgTxt}
+                            </Text>
+                          </Pressable>
                         </View>
                       ) : (
                         <>
                           <Text
                             style={{
-                              color: '#fff',
+                              color: '#000',
                               paddingLeft: 8,
                               fontSize: 15,
                             }}>
@@ -379,7 +515,7 @@ const ChatDetails = ({route}: {route: any}) => {
                           </Text>
                           <Text
                             style={{
-                              color: '#fff',
+                              color: '#000',
                               paddingRight: 8,
                               fontSize: 10,
                               textAlign: 'right',
@@ -559,22 +695,33 @@ const ChatDetails = ({route}: {route: any}) => {
                   <Text style={{marginTop: 10}}>Gallery</Text>
 
                   <View style={styles.imageContainer}>
-                    {state.selectedImage !== null ? (
-                      <Image
-                        source={{
-                          uri: state.selectedImage,
-                        }}
-                        style={styles.imageBox}
-                      />
-                    ) : null}
-
-                    {state.selectedImage !== null && (
-                      <Button
-                        disabled={state.uploadingImage}
-                        title="Upload image"
-                        onPress={() => uploadImage(uid)}
-                      />
-                    )}
+                    <>
+                      {state.selectedImage !== null ? (
+                        <Image
+                          source={{
+                            uri: state.selectedImage,
+                          }}
+                          style={styles.imageBox}
+                        />
+                      ) : null}
+                      {state.selectedImage !== null && (
+                        <View style={[styles.inputConChild, {margin: 10}]}>
+                          <TextInput
+                            style={styles.imgInput}
+                            placeholder="Enter Here"
+                            onChangeText={e => setState({imgTxt: e})}
+                            value={state.imgTxt}
+                          />
+                        </View>
+                      )}
+                      {state.selectedImage !== null && (
+                        <Button
+                          disabled={state.uploadingImage}
+                          title="Upload image"
+                          onPress={() => uploadImage(uid)}
+                        />
+                      )}
+                    </>
                   </View>
                 </View>
               </View>
@@ -632,6 +779,14 @@ const styles = StyleSheet.create({
     paddingVertical: '3%',
     color: 'black',
     height: 50,
+  },
+  imgInput: {
+    flexGrow: 1,
+    paddingLeft: 30,
+    paddingVertical: '3%',
+    color: 'black',
+    height: 50,
+    width: 400,
   },
   sendIcon: {
     marginRight: '2%',

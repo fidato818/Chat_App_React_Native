@@ -1,6 +1,12 @@
 import {useSetState} from 'ahooks';
 import React, {useEffect} from 'react';
-import {View, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import {Formik} from 'formik';
 import {
   HelperText,
@@ -81,20 +87,28 @@ const Signup = () => {
       })
       .catch(error => {
         if (error.code === 'auth/email-already-in-use') {
-          console.log('That email address is already in use!');
+          // console.log('That email address is already in use!');
+          Alert.alert('Chat App', 'That email address is already in use!');
           setState({isLoading: false});
         }
 
         if (error.code === 'auth/invalid-email') {
-          console.log('That email address is invalid!');
+          // console.log('That email address is invalid!');
+          Alert.alert('Chat App', 'That email address is invalid!');
           setState({isLoading: false});
         }
 
-        console.error('error', error);
+        var errArr = ['auth/user-not-found', 'auth/wrong-password'];
+
+        var errMsg: any =
+          errArr.includes(error.code) === true && `Invalid email or password`;
+        // console.error('error', errArr.includes(error.code));
+        Alert.alert('Chat App', errMsg);
+        setState({isLoading: false});
       });
   };
   return (
-    <ScrollView>
+    <ScrollView keyboardShouldPersistTaps="handled">
       <IconButton
         icon="chat"
         size={160}
@@ -168,6 +182,7 @@ const Signup = () => {
                 </HelperText>
               )}
               <TextInput
+                disabled={state.isLoading}
                 label="Password"
                 name="password"
                 placeholder="Password"
@@ -175,8 +190,17 @@ const Signup = () => {
                 onChangeText={handleChange('password')}
                 onBlur={handleBlur('password')}
                 value={values.password}
-                secureTextEntry
-                disabled={state.isLoading}
+                secureTextEntry={state.showPass === true ? true : false}
+                right={
+                  <TextInput.Icon
+                    name={state.showPass === true ? 'eye-off' : 'eye'}
+                    onPress={() =>
+                      setState({
+                        showPass: !state.showPass,
+                      })
+                    }
+                  />
+                }
               />
 
               <HelperText visible={errors.password} style={{color: 'red'}}>

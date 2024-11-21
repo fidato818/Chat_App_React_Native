@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from 'react-native';
 import {Formik} from 'formik';
 import {
@@ -19,7 +22,7 @@ import * as Yup from 'yup';
 import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
-import {update_user} from '../../../Store/userReducers'; 
+import {update_user} from '../../../Store/userReducers';
 const SignupSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Required'),
   password: Yup.string()
@@ -50,7 +53,7 @@ const Login = () => {
   const signinhandler = (data: any) => {
     const {email, password} = data;
     setState({isLoading: true});
-    console.log('data', data);
+    // console.log('data', data);
     auth()
       .signInWithEmailAndPassword(email, password)
       .then(e => {
@@ -66,118 +69,143 @@ const Login = () => {
       })
       .catch(error => {
         if (error.code === 'auth/email-already-in-use') {
-          console.log('That email address is already in use!');
+          // console.log('That email address is already in use!');
+          Alert.alert('Chat App', 'That email address is already in use!');
           setState({isLoading: false});
         }
 
         if (error.code === 'auth/invalid-email') {
-          console.log('That email address is invalid!');
+          // console.log('That email address is invalid!');
+          Alert.alert('Chat App', 'That email address is invalid!');
           setState({isLoading: false});
         }
 
-        console.error('error', error);
+        // console.error('error', errMsg);
+        var errArr = ['auth/user-not-found', 'auth/wrong-password'];
+
+        var errMsg: any =
+          errArr.includes(error.code) === true && `Invalid email or password`;
+        // console.error('error', errArr.includes(error.code));
+        Alert.alert('Chat App', errMsg);
         setState({isLoading: false});
       });
   };
   return (
     <View>
-      <ScrollView>
-        <IconButton
-          icon="chat"
-          size={160}
-          style={{
-            // flex: 1,
-            marginTop: '20%',
-            // width: '100%',
-            // height: '25%',
-            // resizeMode: 'cover',
-            // aspectRatio: 1, // Your aspect ratio
-            alignSelf: 'center',
-            // fontSize: 300
-          }}
-          // source={require('@/assets/logo/logo.png')}
-        />
-        <View style={{margin: 10}}>
-          <Formik
-            validationSchema={SignupSchema}
-            initialValues={{email: '', password: ''}}
-            onSubmit={values =>
-              //   setState({
-              //     data: values,
-              //   })
-              signinhandler(values)
-            }>
-            {({
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              values,
-              errors,
-              isValid,
-            }) => (
-              <>
-                <TextInput
-                  label="Email"
-                  name="email"
-                  placeholder="Email Address"
-                  style={styles.textInput}
-                  onChangeText={handleChange('email')}
-                  onBlur={handleBlur('email')}
-                  value={values.email}
-                  keyboardType="email-address"
-                />
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <KeyboardAvoidingView
+          behavior="position"
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+          enabled>
+          <IconButton
+            icon="chat"
+            size={160}
+            style={{
+              // flex: 1,
+              marginTop: '20%',
+              // width: '100%',
+              // height: '25%',
+              // resizeMode: 'cover',
+              // aspectRatio: 1, // Your aspect ratio
+              alignSelf: 'center',
+              // fontSize: 300
+            }}
+            // source={require('@/assets/logo/logo.png')}
+          />
+          <View style={{margin: 10}}>
+            <Formik
+              validationSchema={SignupSchema}
+              initialValues={{email: '', password: ''}}
+              onSubmit={values =>
+                //   setState({
+                //     data: values,
+                //   })
+                signinhandler(values)
+              }>
+              {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                isValid,
+              }) => (
+                <>
+                  <TextInput
+                    disabled={state.isLoading}
+                    label="Email"
+                    name="email"
+                    placeholder="Email Address"
+                    style={styles.textInput}
+                    onChangeText={handleChange('email')}
+                    onBlur={handleBlur('email')}
+                    value={values.email}
+                    keyboardType="email-address"
+                  />
 
-                {errors.email && (
-                  <HelperText visible={errors.email} style={{color: 'red'}}>
-                    {errors.email}
+                  {errors.email && (
+                    <HelperText visible={errors.email} style={{color: 'red'}}>
+                      {errors.email}
+                    </HelperText>
+                  )}
+                  <TextInput
+                    disabled={state.isLoading}
+                    label="Password"
+                    name="password"
+                    placeholder="Password"
+                    style={styles.textInput}
+                    onChangeText={handleChange('password')}
+                    onBlur={handleBlur('password')}
+                    value={values.password}
+                    secureTextEntry={state.showPass === true ? true : false}
+                    right={
+                      <TextInput.Icon
+                        name={state.showPass === true ? 'eye-off' : 'eye'}
+                        onPress={() =>
+                          setState({
+                            showPass: !state.showPass,
+                          })
+                        }
+                      />
+                    }
+                  />
+
+                  <HelperText visible={errors.password} style={{color: 'red'}}>
+                    {errors.password}
                   </HelperText>
-                )}
-                <TextInput
-                  label="Password"
-                  name="password"
-                  placeholder="Password"
-                  style={styles.textInput}
-                  onChangeText={handleChange('password')}
-                  onBlur={handleBlur('password')}
-                  value={values.password}
-                  secureTextEntry
-                />
 
-                <HelperText visible={errors.password} style={{color: 'red'}}>
-                  {errors.password}
-                </HelperText>
-
-                {state.isLoading ? (
-                  <Button
-                    loading
-                    //   icon="camera"
-                    mode="contained"
-                    disabled
-                    onPress={handleSubmit}>
-                    Signin
-                  </Button>
-                ) : (
-                  <Button
-                    //   loading
-                    //   icon="camera"
-                    mode="contained"
-                    disabled={!isValid}
-                    onPress={handleSubmit}>
-                    Signin
-                  </Button>
-                )}
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Signup' as never)}>
-                  <Text>Don't have an account! Signup</Text>
-                </TouchableOpacity>
-                {/* <TouchableOpacity
+                  {state.isLoading ? (
+                    <Button
+                      loading
+                      //   icon="camera"
+                      mode="contained"
+                      disabled
+                      onPress={handleSubmit}>
+                      Signin
+                    </Button>
+                  ) : (
+                    <Button
+                      //   loading
+                      //   icon="camera"
+                      mode="contained"
+                      disabled={!isValid}
+                      onPress={handleSubmit}>
+                      Signin
+                    </Button>
+                  )}
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Signup' as never)}>
+                    <Text>Don't have an account! Signup</Text>
+                  </TouchableOpacity>
+                  {/* <TouchableOpacity
                   onPress={() => navigation.navigate('Home' as never)}>
                   <Text>Don't have an account! Signup</Text>
                 </TouchableOpacity> */}
-              </>
-            )}
-          </Formik>
-        </View>
+                </>
+              )}
+            </Formik>
+          </View>
+        </KeyboardAvoidingView>
       </ScrollView>
     </View>
   );
