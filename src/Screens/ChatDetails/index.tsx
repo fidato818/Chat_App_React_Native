@@ -290,6 +290,39 @@ const ChatDetails = ({route}: {route: any}) => {
           });
       });
   };
+
+  const sendNotificationFirebaseAPI = async (
+    token: string,
+    title: string,
+    body: string,
+    data?: object,
+  ) => {
+    if (token != '') {
+      const headers = {
+        Authorization: `key=${GOOGLE_FCM_KEY}`,
+        'Content-Type': 'application/json',
+      };
+
+      const bodyToSend = JSON.stringify({
+        to: token,
+        notification: {
+          title,
+          body,
+        },
+        data, 
+      });
+      try {
+        await axios({
+          method: 'post',
+          url: 'https://fcm.googleapis.com/fcm/send',
+          headers: headers,
+          data: bodyToSend,
+        });
+      } catch (err) {
+        return {err};
+      }
+    }
+  };
   return (
     <View style={styles.Container}>
       <Appbar.Header
@@ -494,7 +527,7 @@ const ChatDetails = ({route}: {route: any}) => {
                             </View>
                             <Text
                               style={{
-                                color: '#000',
+                                color: '#fff',
 
                                 // fontSize: 10,
                                 // textAlign: 'right',

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import {
   useTheme,
@@ -57,6 +58,7 @@ const HomeScreen = () => {
     toggleLogin: false,
     chatArr: [],
     userArr: [],
+    isLoading: false,
   });
 
   const theme = useTheme();
@@ -103,6 +105,7 @@ const HomeScreen = () => {
   // };
 
   useLayoutEffect(() => {
+    setState({isLoading: true});
     // const unsubscribe = navigation.addListener('focus', () => {
     //   console.log('In Navigation Add Listener Block');
     //   listenForMessages();
@@ -122,6 +125,7 @@ const HomeScreen = () => {
             inArr.push(childData as never);
             setState({
               chatArr: inArr,
+              isLoading: false,
             });
             var friendKey = '';
 
@@ -151,6 +155,7 @@ const HomeScreen = () => {
           );
           setState({
             userArr: result,
+            isLoading: false,
           });
         });
     }
@@ -205,7 +210,7 @@ const HomeScreen = () => {
         // setState({ chatRoomId })
       });
   };
-  
+
   const alreadyExistChat = (
     currentId: any,
     otherUserId: any,
@@ -248,7 +253,6 @@ const HomeScreen = () => {
     <View
       style={
         {
-          // flex: 1,
           // alignItems: 'center',
           // justifyContent: 'center',
           // backgroundColor: 'skyblue',
@@ -276,39 +280,48 @@ const HomeScreen = () => {
           }}
         />
       </Appbar.Header>
-      <Text style={{textAlign: 'center'}}>Current User: {email}</Text>
-      <View>
-        <SafeAreaView>
-          <ScrollView>
-            {state.userArr.map((e: any, i: number) => {
-              return (
-                <Card style={{margin: 8}} key={i} elevation={5}>
-                  <Pressable
-                    onPress={() =>
-                      // startChatWithUser(uid, e.userId, e.userEmail)
-                      startChatWithUser(uid, e.userId, e.email)
-                    }>
-                    <Card.Title
-                      title={e.email}
-                      subtitle={e.write_txt}
-                      // left={props => <Avatar.Icon {...props} icon="folder" />}
-                      right={props => (
-                        <IconButton
-                          {...props}
-                          icon="dots-vertical"
-                          onPress={() => {}}
+      {state.isLoading === true ? (
+        <View
+          style={{
+            marginTop: '68%',
+          }}>
+          <ActivityIndicator size="large" color="#45B649" />
+        </View>
+      ) : (
+        <>
+          <Text style={{textAlign: 'center'}}>Current User: {email}</Text>
+          <View>
+            <SafeAreaView>
+              <ScrollView>
+                {state.userArr.map((e: any, i: number) => {
+                  return (
+                    <Card style={{margin: 8}} key={i} elevation={5}>
+                      <Pressable
+                        onPress={() =>
+                          // startChatWithUser(uid, e.userId, e.userEmail)
+                          startChatWithUser(uid, e.userId, e.email)
+                        }>
+                        <Card.Title
+                          title={e.email}
+                          subtitle={e.write_txt}
+                          // left={props => <Avatar.Icon {...props} icon="folder" />}
+                          right={props => (
+                            <IconButton
+                              {...props}
+                              icon="dots-vertical"
+                              onPress={() => {}}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                  </Pressable>
-                </Card>
-              );
-            })}
-          </ScrollView>
-        </SafeAreaView>
-
-        {/**/}
-      </View>
+                      </Pressable>
+                    </Card>
+                  );
+                })}
+              </ScrollView>
+            </SafeAreaView>
+          </View>
+        </>
+      )}
     </View>
   );
 };

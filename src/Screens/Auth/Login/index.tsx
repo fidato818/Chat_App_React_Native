@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import {Formik} from 'formik';
+
 import {
   HelperText,
   TextInput,
@@ -26,9 +27,9 @@ import {update_user} from '../../../Store/userReducers';
 const SignupSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Required'),
   password: Yup.string()
-    .min(2, 'Too Short!')
+    .min(6, 'Too Short!')
     .max(50, 'Too Long!')
-    .required('Required'),
+    .required('Required'), 
 });
 const Login = () => {
   const dispatch = useDispatch();
@@ -204,6 +205,19 @@ const Login = () => {
                 </>
               )}
             </Formik>
+            {/* </View> */}
+            {/* <View style={{marginTop: 20}}>
+              <Text style={{fontSize: 20, textAlign: 'center'}}>Or</Text>
+            </View>
+            <Button
+              style={{marginTop: 20}}
+              //   loading
+              icon="phone"
+              mode="contained"
+              // disabled={!isValid}
+              onPress={() => navigation.navigate('LoginWithPhone' as never)}>
+              Login With Phone
+            </Button> */}
           </View>
         </KeyboardAvoidingView>
       </ScrollView>

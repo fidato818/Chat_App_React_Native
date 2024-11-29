@@ -15,6 +15,7 @@ import BootSplash from 'react-native-bootsplash';
 //Auth
 import SignupScr from '../Screens/Auth/Signup';
 import LoginScr from '../Screens/Auth/Login';
+import LoginWithPhone from '../Screens/Auth/LoginWithPhone';
 import {
   DarkTheme as PaperDarkTheme,
   DefaultTheme as PaperDefaultTheme,
@@ -45,6 +46,7 @@ const LoginStack = () => {
       }}>
       <Stack.Screen name="Signup" component={SignupScr} />
       <Stack.Screen name="Login" component={LoginScr} />
+      <Stack.Screen name="LoginWithPhone" component={LoginWithPhone} />
     </Stack.Navigator>
   );
 };
