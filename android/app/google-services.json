@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "86466318624",
+    "firebase_url": "https://medinventro.firebaseio.com",
+    "project_id": "medinventro",
+    "storage_bucket": "medinventro.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:86466318624:android:ddc3f0fa0f1e9a0200c745",
+        "android_client_info": {
+          "package_name": "com.awesomeprojecti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "86466318624-255irsc5m70v0p73sjgb4hmsd1dsp2c6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChFnvtLUVtqbgHxn_r2r1ghFp9e40BAcU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "86466318624-255irsc5m70v0p73sjgb4hmsd1dsp2c6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
